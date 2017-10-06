@@ -175,6 +175,71 @@ class magEISspectra:
         if flattenTime: # Flatten times for time series plotting.
             self.times = self.times.flatten()
         return self.times
+        
+        
+    def plotHighRateTimeSeries(self, **kwargs):
+        """
+        NAME:    plotHighRateTimeSeries(self, **kwargs)
+        USE:     This function plots the hight rate magEIS flux as a timeseries
+        INPUT:   REQUIRED:
+                    None
+                 OPTIONAL:
+                    'ax'= None: subplot object to plot on. If not specified, 
+                        will create own figure.
+                    'E_ch'= 0: Energy channel to plot
+                    'downsampleAlpha' = 1: Plot the downsampleAlpha'th pitch 
+                        angle for quicker plotting on slower machines.
+                    'deflatTime' = True: Refromat the 'epoch' array so that each
+                        pitch angle is attributed to a unique time stamp. Saved 
+                        self.times
+        AUTHOR:  Mykhaylo Shumko
+        RETURNS: 
+        MOD:     2017-07-04
+        """
+        est_spin = kwargs.get('est_spin', 10.9) # Seconds
+        n_sectors = kwargs.get('n_sectors', None)
+        spin_thresh = kwargs.get('spin_thresh', 0.1) # Fraction of the estimated spin period.
+        ax = kwargs.get('ax', None)
+        E_ch = kwargs.get('E_ch', None)
+        deflatTime = kwargs.get('deflatTime', True) # alphaSpinTimes
+        smooth = kwargs.get('smooth', 1)
+        
+        if n_sectors is None:
+            if self.sc_id.upper() == 'A':
+                n_sectors = 1000
+            else:
+                n_sectors = 64
+        
+        if ax is None:
+            fig = plt.figure(figsize=(15, 10), dpi=80, facecolor = 'white')
+            gs = gridspec.GridSpec(1,1)
+            self.bx = fig.add_subplot(gs[0, 0], facecolor='white')
+        else:
+            self.bx = ax
+        
+        self.times = np.repeat(self.magEISdata['Epoch'][:, np.newaxis],
+            self.magEISdata[self.alphaKey].shape[1] ,axis = 1)
+            
+        # Deflatten the 1d time array into 2d where each pitch angle is given 
+        # a unique time stamp to where the spacecraft was pointing at the time.
+        if deflatTime:
+            self.resolveSpinTimes(spin_thresh, est_spin, n_sectors)
+        
+        if E_ch is None:
+            for E_ch in range(7):
+                flux = self.magEISdata[self.fluxKey][:, :n_sectors, E_ch].flatten()
+                
+                # Now smooth the flux
+                flux = np.convolve(flux, np.ones(smooth)/smooth, mode='same')
+                
+                validF = np.where(flux != -1E31)[0]
+                flatT = self.times[:, :n_sectors].flatten()
+                
+                self.bx.plot(flatT[validF], flux[validF])
+        self.bx.set(yscale='log')
+        if ax is None:
+            plt.show()    
+        return self.bx
 
     def plotHighRateSpectra(self, **kwargs):
         """
@@ -498,35 +563,5 @@ if __name__ == '__main__':
 #    fluxObj.tBounds = [datetime(2017, 3, 31, 11, 15), datetime(2017, 3, 31, 11, 25)]
     fluxObj.tBounds = [datetime(2017, 3, 31, 11, 15), datetime(2017, 3, 31, 11, 20)]
     fluxObj.loadMagEIS(instrument = 'LOW', highrate = True)
-    fluxObj.plotHighRateSpectra(E_ch = 1, scatterS = 50)
-    #fluxObj.loadMagEphem()
-    #fluxObj.calcDailyElectronEnergies()
-    #fluxObj.plotUnidirectionalFlux(alpha, energy = energy)
-    
-#    for i in range(len(fluxObj.magEphem['Loss_Cone_Alpha_n'])):
-#        print(fluxObj.magEphem['Loss_Cone_Alpha_n'][i], 
-#            fluxObj.magEphem['Loss_Cone_Alpha_s'][i],
-#            fluxObj.magEphem['BoverBeq'][i])
-            
-#    plt.figure()
-#    plt.plot(fluxObj.magEphem['DateTime'], fluxObj.magEphem['Loss_Cone_Alpha_n'])
-#    plt.plot(fluxObj.magEphem['DateTime'], fluxObj.magEphem['Loss_Cone_Alpha_s'])
-#    
-#    plt.figure()
-#    plt.plot(fluxObj.magEphem['DateTime'], fluxObj.magEphem['BoverBeq'])
-#    
-#    plt.show()
-#    
-    #fluxObj.plotSpinAvgFlux()
-    #fluxObj._findAlphaIdx(alpha)
-#    print(fluxObj.magEISdata['eEnergy'])
-    #print(fluxObj._findEnergyIdx([35, 50, 100]))
-    #fluxObj.plot
-#    plt.scatter(range(len(fluxObj.magEISdata['eEnergy'])), 
-#        fluxObj.magEISdata['eEnergy'])
-#    plt.xlabel('Channel')
-#    plt.ylabel('Energy (keV)')
-#    plt.yscale('log')
-#    plt.legend()
-#    plt.xlim(0, len(fluxObj.magEISdata['eEnergy']))
-#    plt.show()
+    fluxObj.plotHighRateTimeSeries()
+    #fluxObj.plotHighRateSpectra(E_ch = 1, scatterS = 50)
