@@ -44,7 +44,7 @@ class magEISspectra:
         self.mageisDir = kwargs.get('mageisDir', directories.mageis_dir(sc_id))
         self.magEphemDir = kwargs.get('magEphemDir', 
             directories.rbsp_magephem_dir(sc_id))
-        self.tBounds = kwargs.get('tBounds', None)
+        self.tBounds = kwargs.get('tBounds', None) 
         return
 
     def loadMagEIS(self, **kwargs):
@@ -103,6 +103,27 @@ class magEISspectra:
             # If key is a function of time, filter it.
             if len(self.magEISdata[key]) == N:
                 self.magEISdata[key] = self.magEISdata[key][magEISInd]
+                
+                
+        # Define magEIS detector constants
+        if instrument.lower() == 'low':
+            if self.sc_id.upper() == 'A':
+                self.Emid = [34, 54, 78, 108, 143, 182, 223] # keV
+                self.Elow = [29, 46, 68, 95, 126, 164, 206] # keV
+                self.Ehigh = [41, 66, 92, 126, 164, 204, 247] # keV
+                # Units of (keV cm^2 sr)
+                self.G0dE = [4.13E-2, 5.73E-2, 6.056E-2, 6.88E-2, 7.35E-2, 
+                    6.90E-2, 5.98E-2]
+                self.Ebins = [29, 41, 66, 92, 126, 164, 204, 247]
+                
+            if self.sc_id.upper() == 'B':
+                self.Emid = [32, 51, 74, 101, 132, 168, 208] # keV
+                self.Elow = [27, 43, 63, 88, 117, 152, 193] # keV
+                self.Ehigh = [39, 63, 88, 117, 150, 188] # keV
+                # Units of (keV cm^2 sr)
+                self.G0dE = [4.33E-2, 5.41E-2, 5.926E-2, 6.605E-2, 6.460E-2,
+                    6.23E-2, 5.96E-2]
+                self.Ebins = [27, 39, 63, 88, 117, 150, 188]
 
         return self.magEISdata
 
@@ -204,6 +225,7 @@ class magEISspectra:
         deflatTime = kwargs.get('deflatTime', True) # alphaSpinTimes
         smooth = kwargs.get('smooth', 1)
         
+        
         if n_sectors is None:
             if self.sc_id.upper() == 'A':
                 n_sectors = 1000
@@ -226,16 +248,21 @@ class magEISspectra:
             self.resolveSpinTimes(spin_thresh, est_spin, n_sectors)
         
         if E_ch is None:
-            for E_ch in range(7):
-                flux = self.magEISdata[self.fluxKey][:, :n_sectors, E_ch].flatten()
-                
-                # Now smooth the flux
-                flux = np.convolve(flux, np.ones(smooth)/smooth, mode='same')
-                
-                validF = np.where(flux != -1E31)[0]
-                flatT = self.times[:, :n_sectors].flatten()
-                
-                self.bx.plot(flatT[validF], flux[validF])
+            E_ch = np.arange(7)
+        elif not isinstance(E_ch, (list, np.ndarray)):
+            E_ch = [E_ch]
+            
+        for ee in E_ch:
+            flux = self.magEISdata[self.fluxKey][:, :n_sectors, ee].flatten()
+            
+            # Now smooth the flux
+            flux = np.convolve(flux, np.ones(smooth)/smooth, mode='same')
+            
+            validF = np.where(flux != -1E31)[0]
+            flatT = self.times[:, :n_sectors].flatten()
+            
+            self.bx.plot(flatT[validF], flux[validF], 
+                label='{}-{} keV'.format(self.Elow[ee], self.Ehigh[ee]))
         self.bx.set(yscale='log')
         if ax is None:
             plt.show()    
@@ -563,5 +590,5 @@ if __name__ == '__main__':
 #    fluxObj.tBounds = [datetime(2017, 3, 31, 11, 15), datetime(2017, 3, 31, 11, 25)]
     fluxObj.tBounds = [datetime(2017, 3, 31, 11, 15), datetime(2017, 3, 31, 11, 20)]
     fluxObj.loadMagEIS(instrument = 'LOW', highrate = True)
-    fluxObj.plotHighRateTimeSeries()
+    fluxObj.plotHighRateTimeSeries(smooth = 10)
     #fluxObj.plotHighRateSpectra(E_ch = 1, scatterS = 50)
