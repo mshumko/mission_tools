@@ -64,16 +64,16 @@ if __name__ == '__main__':
     #dataUrl = findEMFISISSpectraUrl(sc_id, date)
     #saveEMFISISSpectra(sc_id, date, '/home/mike/temp')
     
-    startDate = datetime(2014, 6, 1)
-    endDate =  datetime(2017, 6, 1)
+    startDate = datetime(2017, 7, 1)
+    endDate =  datetime(2017, 8, 1)
     delta = endDate - startDate
     for sc_id in ['A', 'B']:
         for i in range(delta.days + 1):
             date = startDate + timedelta(days=i)
             print(date)
             try:
-                saveEMFISISSpectra(sc_id, date, '/home/ms30715/ssd_data/rbsp/data'
-                '/emfisis/WFR/RBSP{}/L2'.format(sc_id.upper()), 
+                saveEMFISISSpectra(sc_id, date, '/home/mike/research/rbsp/'
+                'data/emfisis/rbsp{}'.format(sc_id.lower()), 
                     spectraType = 'spectral-matrix-diagonal')
             except urllib.error.HTTPError as err:
                 print(str(err))

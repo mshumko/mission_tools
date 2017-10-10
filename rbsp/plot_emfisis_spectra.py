@@ -129,7 +129,7 @@ class EMFISISspectra:
         self.spec['Spectra'] = self.spec['HFR_Spectra'][hfrInd, :]
         return     
 
-    def loadMagEphem(self, Bmodel = 'TS04D'):
+    def loadMagEphem(self, Bmodel = 'T89D'):
         """
         This function will load the magnetic ephemeris file and filter it by the
         time bounds, if necessary. This will also calculate the model gyrofrequency
@@ -318,9 +318,9 @@ class EMFISISspectra:
         return
 
 if __name__ == '__main__':
-    date = datetime(2017, 3, 31)
+    date = datetime(2017, 7, 29)
     #tBounds = [datetime(2017, 3, 31, 11, 10), datetime(2017, 3, 31, 11, 20)]
-    tBounds = [datetime(2017, 3, 31, 11, 10), datetime(2017, 3, 31, 11, 25)]
+    tBounds = [datetime(2017, 7, 29, 15), datetime(2017, 7, 29, 15, 30)]
     sc_id = 'A'
 
     pObj = EMFISISspectra(sc_id, date, tBounds = tBounds)
@@ -328,7 +328,7 @@ if __name__ == '__main__':
     pObj.loadMagEphem()
     
     #pObj.plotSpectra(plotCb = 'vertical', instrument = 'HFR')
-    pObj.plotSpectra(plotCb = 'vertical', spectraMin = 10**-11, 
-        spectraMax = 10**-8)
+    pObj.plotSpectra(plotCb = 'vertical', spectraMin = 10**-10, 
+        spectraMax=10**-4)
         
     #cLevels = np.power(10, -np.arange(9, 7, -0.1))

@@ -18,7 +18,8 @@ def findRBSPMagEphemUrl(sc_id, date, **kwargs):
     magEphemRegex = re.compile(reString)
     
     if url is None:
-        url = ('https://rbsp-ect.lanl.gov/data_pub/rbsp{}_bak/MagEphem/def/{}/'.format(sc_id.lower(), splitDate[0]))
+        url = ('https://rbsp-ect.lanl.gov/data_pub/rbsp{}/MagEphem/'
+            'definitive/{}/'.format(sc_id.lower(), splitDate[0]))
         
     response = urllib.request.urlopen(url)
     data = response.read().decode()
@@ -57,12 +58,13 @@ if __name__ == '__main__':
     #date = datetime(2017,3,10)
     sc_id = ['A','B']
 
-    startDate = datetime(2015, 2, 1)
-    endDate =  datetime(2017, 4, 20)
+    startDate = datetime(2017, 7, 1)
+    endDate =  datetime(2017, 8, 1)
     delta = endDate - startDate
     
     for sc in sc_id:
         for i in range(delta.days + 1):
             date = startDate + timedelta(days=i)
             print(date)
-            saveRBSPMagEphem(sc, date, '/home/mike/RBSP/ephem/RBSP'+ sc)
+            saveRBSPMagEphem(sc, date, '/home/mike/research/rbsp/magephem/'
+                'rbsp{}'.format(sc.lower()))
