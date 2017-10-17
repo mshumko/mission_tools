@@ -67,15 +67,20 @@ class magEISspectra:
         
         # Change data keys and file string lookup, depending on if you are 
         # plotting the highrate or not.
-        if self.highrate:
-            self.alphaKey = 'HighRate_Alpha360'
-            self.fluxKey = 'HighRate'
-            highrate = 'hr'
-        else:
-            self.alphaKey = 'FEDU_Unbinned_Alpha360'
-            self.fluxKey = 'FEDU_Unbinned_0to360'
+        if relType == 'int':
+            if self.highrate:
+                self.alphaKey = 'HighRate_Alpha360'
+                self.fluxKey = 'HighRate'
+                highrate = 'hr'
+            else:
+                self.alphaKey = 'FEDU_Unbinned_Alpha360'
+                self.fluxKey = 'FEDU_Unbinned_0to360'
+                highrate = ''
+        if relType == 'rel03':
+            self.alphaKey = 'FEDU_Alpha'
+            self.fluxKey = 'FEDU'
             highrate = ''
-
+            
         # Find the file.
         searchStr = os.path.join(self.mageisDir, 
             'rbsp{}_{}_ect-mageis{}-*{}*L{}_{}*.cdf'.format(self.sc_id.lower(), 
@@ -225,6 +230,11 @@ class magEISspectra:
         deflatTime = kwargs.get('deflatTime', True) # alphaSpinTimes
         smooth = kwargs.get('smooth', 1)
         
+        if self.highrate:
+            alphaDim = 1
+        else:
+            alphaDim = 0
+        
         
         if n_sectors is None:
             if self.sc_id.upper() == 'A':
@@ -238,9 +248,11 @@ class magEISspectra:
             self.bx = fig.add_subplot(gs[0, 0], facecolor='white')
         else:
             self.bx = ax
+            
+        print(self.magEISdata[self.alphaKey])
         
         self.times = np.repeat(self.magEISdata['Epoch'][:, np.newaxis],
-            self.magEISdata[self.alphaKey].shape[1] ,axis = 1)
+            self.magEISdata[self.alphaKey].shape[alphaDim] ,axis = 1)
             
         # Deflatten the 1d time array into 2d where each pitch angle is given 
         # a unique time stamp to where the spacecraft was pointing at the time.
@@ -261,8 +273,9 @@ class magEISspectra:
             validF = np.where(flux != -1E31)[0]
             flatT = self.times[:, :n_sectors].flatten()
             
-            self.bx.plot(flatT[validF], flux[validF], 
-                label='{}-{} keV'.format(self.Elow[ee], self.Ehigh[ee]))
+            print(flux)
+            self.bx.plot(flatT[validF], flux[validF]), 
+               # label='{}-{} keV'.format(self.Elow[ee], self.Ehigh[ee]))
         self.bx.set(yscale='log')
         if ax is None:
             plt.show()    
@@ -582,13 +595,17 @@ class magEISspectra:
 
 if __name__ == '__main__':
     rb_id = 'A'
-    #alpha = np.array([5, 90, 180])
-    date = datetime(2017, 3, 31)
-    #alpha = [10, 90, 170]
-    #energy = [35, 50, 100]
+    date = datetime(2017, 7, 15)
     fluxObj = magEISspectra(rb_id, date, dataLevel = 3)
-#    fluxObj.tBounds = [datetime(2017, 3, 31, 11, 15), datetime(2017, 3, 31, 11, 25)]
-    fluxObj.tBounds = [datetime(2017, 3, 31, 11, 15), datetime(2017, 3, 31, 11, 20)]
-    fluxObj.loadMagEIS(instrument = 'LOW', highrate = True)
-    fluxObj.plotHighRateTimeSeries(smooth = 10)
+    #fluxObj.tBounds = [datetime(2017, 3, 31, 11, 15), datetime(2017, 3, 31, 11, 20)]
+    fluxObj.loadMagEIS(highrate=False, relType='rel03')
+    fluxObj.plotHighRateTimeSeries(smooth = 10, n_sectors=11)
     #fluxObj.plotHighRateSpectra(E_ch = 1, scatterS = 50)
+
+###    rb_id = 'A'
+###    date = datetime(2017, 3, 31)
+###    fluxObj = magEISspectra(rb_id, date, dataLevel = 3)
+###    fluxObj.tBounds = [datetime(2017, 3, 31, 11, 15), datetime(2017, 3, 31, 11, 20)]
+###    fluxObj.loadMagEIS(instrument = 'LOW', highrate = True)
+###    fluxObj.plotHighRateTimeSeries(smooth = 10)
+###    #fluxObj.plotHighRateSpectra(E_ch = 1, scatterS = 50)
