@@ -3,10 +3,15 @@ import os
 import sys
 import glob
 import numpy as np
+from datetime import datetime
+
+# Plottinglig libraries
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import matplotlib.colors as colors
-from datetime import datetime
+import matplotlib.dates as mdates
+from matplotlib.patches import Polygon
+from matplotlib.collections import PatchCollection
 
 from spacepy import pycdf
 
@@ -201,13 +206,18 @@ class plot_rbspice:
             self.ax = ax
             
         for tel in range(len(self.rbspicedata['Telescope'])):
-            sc = self.ax.scatter(self.rbspicedata['Epoch'], 
-                self.rbspicedata['Alpha'][:, tel], 
-                c=flux[:, tel], 
-                norm=colors.LogNorm(), vmin=cmin, vmax=cmax)
+            print(self.rbspicedata['FEDU_AlphaRange'][:, tel, :])
+#            sc = self.ax.scatter(self.rbspicedata['Epoch'], 
+#                self.rbspicedata['Alpha'][:, tel], 
+#                c=flux[:, tel], 
+#                norm=colors.LogNorm(), vmin=cmin, vmax=cmax)
+            axx, p = self.plotPitchAngles(self.ax,
+                self.rbspicedata['Epoch'], 
+                self.rbspicedata['FEDU_AlphaRange'][:, tel, :], 
+                flux[:, tel])
                 
-        cb = plt.colorbar(sc, ax=self.ax, cax=cax, 
-            label=r'Flux $(keV \ cm^2 \ s \ sr)^-1$')
+#        cb = plt.colorbar(sc, ax=self.ax, cax=cax, 
+#            label=r'Flux $(keV \ cm^2 \ s \ sr)^-1$')
                 
         self.ax.set_xlim(self.rbspicedata['Epoch'][0], 
             self.rbspicedata['Epoch'][-1])
@@ -234,13 +244,45 @@ class plot_rbspice:
             plt.show()
         return self.ax
         
+    def plotPitchAngles(self, ax, time, alpha, flux):
+        """
+        
+        """
+        ax.xaxis_date()
+        
+        patches = []
+        verticies = self._makeAlphaTimeVertecies_(time, alpha)
+        
+        for i in range(verticies.shape[-1]):
+            patches.append(Polygon(verticies[:, :, i]))
+
+        p = PatchCollection(patches)
+        p.set_cmap('plasma')
+        p.set_array(np.array(flux))
+        #p.autoscale()
+        p.set_norm(colors.LogNorm())
+        #p.set_clim(vmin=10**-4, vmax=10**-1)
+        ax.add_collection(p)
+        ax.autoscale_view()
+        # Convert number ticks to datetime ticks.
+        locator = mdates.AutoDateLocator(minticks=3) 
+        formatter = mdates.AutoDateFormatter(locator)
+        ax.xaxis.set_major_locator(locator)
+        ax.xaxis.set_major_formatter(formatter)
+        fig.autofmt_xdate()
+        #fig.colorbar(p, ax=ax)
+        return ax, p
+        
         
     def _makeAlphaTimeVertecies_(self, times, alphas):
-        vertex = np.array(
-                    [[pPerp[i, j], pParallel[i, j]], 
-                    [pPerp[i+1, j], pParallel[i+1, j]], 
-                    [pPerp[i+1, j+1], pParallel[i+1, j+1]], 
-                    [pPerp[i, j+1], pParallel[i, j+1]]] )
+        verticies = np.nan*np.ones((4, 2, len(times)-1))
+        numDates = mdates.date2num(times)
+        for idt in range(len(times)-1):
+            verticies[:, :, idt] = [[numDates[idt], alphas[idt,0]], 
+                                    [numDates[idt], alphas[idt,1]], 
+                                    [numDates[idt+1],alphas[idt,1]], 
+                                    [numDates[idt+1], alphas[idt,0]]]
+        return verticies
         
 if __name__ == '__main__':
     rb_id = 'A'
@@ -257,5 +299,5 @@ if __name__ == '__main__':
 #    ax.set_ylim(25, 100)
 #    plt.show()
 
-    pltObj.plotTelecopeAlphaScatter(np.arange(0, 20), ax=ax)
+    pltObj.plotTelecopeAlphaScatter(20, ax=ax)
     plt.show()
