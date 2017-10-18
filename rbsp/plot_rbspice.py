@@ -5,7 +5,7 @@ import glob
 import numpy as np
 from datetime import datetime
 
-# Plottinglig libraries
+# Plotting libraries
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import matplotlib.colors as colors
@@ -22,6 +22,9 @@ try:
 except SystemError:
     print('Could not import the directories.py file, '
         'please supply data directories manualy!')
+
+# Set global plot font size
+plt.rcParams['font.size'] = 15
 
 class plot_rbspice:
     def __init__(self, sc_id, date, **kwargs):
@@ -90,6 +93,7 @@ class plot_rbspice:
         # Now filter the data that will be used for plotting
         self.rbspicedata['Epoch'] = self.rbspicedata['Epoch'][idt]
         self.rbspicedata['Alpha'] = self.rbspicedata['Alpha'][idt, :]
+        self.rbspicedata['Alpha_Quality'] = self.rbspicedata['Alpha_Quality'][idt]
         self.rbspicedata['FEDU_Alpha'] = self.rbspicedata['FEDU_Alpha'][idt, :] 
         self.rbspicedata['FEDU_AlphaRange'] = (
             self.rbspicedata['FEDU_AlphaRange'][idt, :, :] )
@@ -206,7 +210,8 @@ class plot_rbspice:
             self.ax = ax
             
         for tel in range(len(self.rbspicedata['Telescope'])):
-            print(self.rbspicedata['FEDU_AlphaRange'][:, tel, :])
+            #print(self.rbspicedata['FEDU_AlphaRange'][:, tel, :])
+            #print(self.rbspicedata['FEDU_AlphaRange'].attrs)
 #            sc = self.ax.scatter(self.rbspicedata['Epoch'], 
 #                self.rbspicedata['Alpha'][:, tel], 
 #                c=flux[:, tel], 
@@ -221,7 +226,8 @@ class plot_rbspice:
                 
         self.ax.set_xlim(self.rbspicedata['Epoch'][0], 
             self.rbspicedata['Epoch'][-1])
-        self.ax.set(ylabel=r'$\alpha_{sc}$', xlabel='UTC')
+        self.ax.set(ylabel=r'$\alpha_{sc}$', xlabel='UTC', 
+            title='RBSP-{} RBSPICE {}'.format(self.sc_id.upper(), self.date.date()))
         
         # Write the energy channel in the plot
         if Elabel:
@@ -299,5 +305,5 @@ if __name__ == '__main__':
 #    ax.set_ylim(25, 100)
 #    plt.show()
 
-    pltObj.plotTelecopeAlphaScatter(20, ax=ax)
+    pltObj.plotTelecopeAlphaScatter(range(10, 20), ax=ax)
     plt.show()
