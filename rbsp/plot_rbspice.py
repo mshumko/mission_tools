@@ -187,6 +187,7 @@ class plot_rbspice:
         cax = kwargs.get('cax', None)
         logE = kwargs.get('logE', True)
         Elabel = kwargs.get('Elabel', True)      
+        telescopes = kwargs.get('telescopes', self.rbspicedata['Telescope'])
                 
         flux = self.rbspicedata['FEDU'][:, :, Ech]/1000
         
@@ -209,7 +210,7 @@ class plot_rbspice:
         else:
             self.ax = ax
             
-        for tel in range(len(self.rbspicedata['Telescope'])):
+        for tel in range(len(telescopes)):
             #print(self.rbspicedata['FEDU_AlphaRange'][:, tel, :])
             #print(self.rbspicedata['FEDU_AlphaRange'].attrs)
 #            sc = self.ax.scatter(self.rbspicedata['Epoch'], 
