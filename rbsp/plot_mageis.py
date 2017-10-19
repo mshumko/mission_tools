@@ -229,6 +229,7 @@ class magEISspectra:
         E_ch = kwargs.get('E_ch', None)
         deflatTime = kwargs.get('deflatTime', True) # alphaSpinTimes
         smooth = kwargs.get('smooth', 1)
+        chLegend = kwargs.get('chLegend', True)
         
         if self.highrate:
             alphaDim = 1
@@ -265,18 +266,20 @@ class magEISspectra:
             E_ch = [E_ch]
             
         for ee in E_ch:
-            flux = self.magEISdata[self.fluxKey][:, :n_sectors, ee].flatten()
+            flux = self.magEISdata[self.fluxKey][:, :n_sectors, ee].flatten()/self.G0dE[ee]
             
             # Now smooth the flux
             flux = np.convolve(flux, np.ones(smooth)/smooth, mode='same')
             
             validF = np.where(flux > 0)[0]
             flatT = self.times[:, :n_sectors].flatten()
-            
-            #print(flux)
-            self.bx.plot(flatT[validF], flux[validF]), 
-               # label='{}-{} keV'.format(self.Elow[ee], self.Ehigh[ee]))
+
+            self.bx.plot(flatT[validF], flux[validF], 
+                label='{}-{} keV'.format(self.Elow[ee],
+                self.Ehigh[ee]))
         self.bx.set(yscale='log')
+        if chLegend: 
+            self.bx.legend()
         if ax is None:
             plt.show()    
         return self.bx
