@@ -223,9 +223,7 @@ class plot_rbspice:
                 
 #        cb = plt.colorbar(sc, ax=self.ax, cax=cax, 
 #            label=r'Flux $(keV \ cm^2 \ s \ sr)^-1$')
-                
-        self.ax.set_xlim(self.rbspicedata['Epoch'][0], 
-            self.rbspicedata['Epoch'][-1])
+
         self.ax.set(ylabel=r'$\alpha_{sc}$', xlabel='UTC', 
             title='RBSP-{} RBSPICE {}'.format(self.sc_id.upper(), self.date.date()))
         
@@ -246,9 +244,11 @@ class plot_rbspice:
                 bbox=dict(boxstyle="square", facecolor='white'))
 
         if ax is None:
+            self.ax.set_xlim(self.rbspicedata['Epoch'][0], 
+                self.rbspicedata['Epoch'][-1])
             gs.tight_layout(fig)
             plt.show()
-        return self.ax
+        return self.ax, p
         
     def plotPitchAngles(self, ax, time, alpha, flux):
         """
@@ -275,7 +275,7 @@ class plot_rbspice:
         formatter = mdates.AutoDateFormatter(locator)
         ax.xaxis.set_major_locator(locator)
         ax.xaxis.set_major_formatter(formatter)
-        fig.autofmt_xdate()
+        #fig.autofmt_xdate()
         #fig.colorbar(p, ax=ax)
         return ax, p
         

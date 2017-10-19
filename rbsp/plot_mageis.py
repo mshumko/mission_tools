@@ -249,7 +249,7 @@ class magEISspectra:
         else:
             self.bx = ax
             
-        print(self.magEISdata[self.alphaKey])
+        #print(self.magEISdata[self.alphaKey])
         
         self.times = np.repeat(self.magEISdata['Epoch'][:, np.newaxis],
             self.magEISdata[self.alphaKey].shape[alphaDim] ,axis = 1)
@@ -270,10 +270,10 @@ class magEISspectra:
             # Now smooth the flux
             flux = np.convolve(flux, np.ones(smooth)/smooth, mode='same')
             
-            validF = np.where(flux != -1E31)[0]
+            validF = np.where(flux > 0)[0]
             flatT = self.times[:, :n_sectors].flatten()
             
-            print(flux)
+            #print(flux)
             self.bx.plot(flatT[validF], flux[validF]), 
                # label='{}-{} keV'.format(self.Elow[ee], self.Ehigh[ee]))
         self.bx.set(yscale='log')
