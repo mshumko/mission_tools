@@ -149,11 +149,12 @@ class EMFISISspectra:
         RETURNS: None
         MOD:     2017-06-27
         """
-        magEphemName = sorted(glob.glob(os.path.join(self.magEphemDir,
+        searchStr = os.path.join(self.magEphemDir,
             ('rbsp{}*MagEphem*{}*{}*.txt'.format(self.sc_id.lower(), 
-            Bmodel, self.joinedDate)))))
+            Bmodel, self.joinedDate)))
+        magEphemName = sorted(glob.glob(searchStr))
         assert len(magEphemName) == 1, ('Error, none or multiple'
-        ' magnetic ephemeris files found!')
+            ' magnetic ephemeris files found! \n' + searchStr)
         magEphemName = magEphemName[0]
         self.magEphem = spacepy.datamodel.readJSONheadedASCII(magEphemName)
         

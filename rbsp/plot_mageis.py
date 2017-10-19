@@ -63,17 +63,24 @@ class magEISspectra:
         # Optional variables.
         relType = kwargs.get('relType', 'int')
         instrument = kwargs.get('instrument', '')
+        self.remappedAlphas = kwargs.get('remappedAlphas', True)
         self.highrate = kwargs.get('highrate', False)
         
         # Change data keys and file string lookup, depending on if you are 
         # plotting the highrate or not.
         if relType == 'int':
             if self.highrate:
-                self.alphaKey = 'HighRate_Alpha360'
+                if self.remappedAlphas:
+                    self.alphaKey = 'HighRate_Alpha'
+                else:
+                    self.alphaKey = 'HighRate_Alpha360'
                 self.fluxKey = 'HighRate'
                 highrate = 'hr'
             else:
-                self.alphaKey = 'FEDU_Unbinned_Alpha360'
+                if self.remappedAlphas:
+                    self.alphaKey = 'FEDU_Unbinned_Alpha'
+                else:
+                    self.alphaKey = 'FEDU_Unbinned_Alpha360'
                 self.fluxKey = 'FEDU_Unbinned_0to360'
                 highrate = ''
         if relType == 'rel03':
@@ -295,8 +302,8 @@ class magEISspectra:
                         will create own figure.
                     'E_ch'= 0: Energy channel to plot
                     'scatterS' = 10: Size of scatter symbols to plot.
-                    'vmin' = None: Min flux value range for colorbar
-                    'vmax' = None: Max flux value range for colorbar
+                    'cmin' = None: Min flux value range for colorbar
+                    'cmax' = None: Max flux value range for colorbar
                     'pltXlabel' = True: Wether or not to label the xaxis as UTC.
                     'pltTitle' = True: If True, will print RBSP-{} magEIS 
                         HigHRate Data.
@@ -312,8 +319,8 @@ class magEISspectra:
         ax = kwargs.get('ax', None)
         E_ch = kwargs.get('E_ch', 0)
         scatterS = kwargs.get('scatterS', 10)
-        vmin = kwargs.get('vmin', None)
-        vmax = kwargs.get('vmax', None)
+        cmin = kwargs.get('cmin', None)
+        cmax = kwargs.get('cmax', None)
         pltXlabel = kwargs.get('pltXlabel', True)
         pltTitle = kwargs.get('pltTitle', True)
         downsampleAlpha = kwargs.get('downsampleAlpha', 1)
@@ -345,14 +352,13 @@ class magEISspectra:
         # a unique time stamp to where the spacecraft was pointing at the time.
         if deflatTime:
             self.resolveSpinTimes(spin_thresh, est_spin, n_sectors)
-        
-        flux = self.magEISdata[self.fluxKey][:, :, E_ch]
+        flux = self.magEISdata[self.fluxKey][:, :, E_ch]/self.G0dE[E_ch]
         
         self.sc = self.ax.scatter(self.times[:, ::downsampleAlpha], 
             self.magEISdata[self.alphaKey][:, ::downsampleAlpha], 
             c = flux[:, ::downsampleAlpha], norm=matplotlib.colors.LogNorm(),
             cmap = plt.get_cmap('rainbow'), 
-            vmin = vmin, vmax = vmax, s = scatterS)
+            vmin = cmin, vmax = cmax, s = scatterS)
         if plotCb:
             if aspect is None:
                 self.cb = plt.colorbar(self.sc, ax = self.ax, cax = cax,
@@ -361,9 +367,13 @@ class magEISspectra:
                 self.cb = plt.colorbar(self.sc, ax = self.ax, cax = cax,
                 orientation='vertical', aspect = aspect, 
                     label = 'counts/sec')
-
-        self.ax.set_xlim(self.times[0,0], self.times[-1, -1])
-        self.ax.set_ylim(0, 360)
+        if ax is None:
+            self.ax.set_xlim(self.times[0,0], 
+                self.times[-1, -1])
+        if self.remappedAlphas:
+            self.ax.set_ylim(0, 180)
+        else:
+            self.ax.set_ylim(0, 360)
         
         self.ax.set_ylabel('Pitch angle (deg)')
         if pltXlabel: self.ax.set_xlabel('UTC')

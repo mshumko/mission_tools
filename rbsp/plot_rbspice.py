@@ -186,7 +186,7 @@ class plot_rbspice:
         cmax = kwargs.get('cmax', None)
         cax = kwargs.get('cax', None)
         logE = kwargs.get('logE', True)
-        Elabel = kwargs.get('Elabel', True)
+        Elabel = kwargs.get('Elabel', True)      
                 
         flux = self.rbspicedata['FEDU'][:, :, Ech]/1000
         
@@ -219,7 +219,7 @@ class plot_rbspice:
             axx, p = self.plotPitchAngles(self.ax,
                 self.rbspicedata['Epoch'], 
                 self.rbspicedata['FEDU_AlphaRange'][:, tel, :], 
-                flux[:, tel])
+                flux[:, tel], cmin=cmin, cmax=cmax)
                 
 #        cb = plt.colorbar(sc, ax=self.ax, cax=cax, 
 #            label=r'Flux $(keV \ cm^2 \ s \ sr)^-1$')
@@ -250,7 +250,7 @@ class plot_rbspice:
             plt.show()
         return self.ax, p
         
-    def plotPitchAngles(self, ax, time, alpha, flux):
+    def plotPitchAngles(self, ax, time, alpha, flux, cmin=None, cmax=None):
         """
         
         """
@@ -263,11 +263,11 @@ class plot_rbspice:
             patches.append(Polygon(verticies[:, :, i]))
 
         p = PatchCollection(patches)
-        p.set_cmap('plasma')
+        p.set_cmap('rainbow')
         p.set_array(np.array(flux))
         #p.autoscale()
         p.set_norm(colors.LogNorm())
-        #p.set_clim(vmin=10**-4, vmax=10**-1)
+        p.set_clim(vmin=cmin, vmax=cmax)
         ax.add_collection(p)
         ax.autoscale_view()
         # Convert number ticks to datetime ticks.
