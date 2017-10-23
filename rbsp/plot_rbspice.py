@@ -188,6 +188,7 @@ class plot_rbspice:
         logE = kwargs.get('logE', True)
         Elabel = kwargs.get('Elabel', True)      
         telescopes = kwargs.get('telescopes', self.rbspicedata['Telescope'])
+        removeLowRate = kwargs.get('removeLowRate', True)
                 
         flux = self.rbspicedata['FEDU'][:, :, Ech]/1000
         
@@ -219,8 +220,8 @@ class plot_rbspice:
 #                norm=colors.LogNorm(), vmin=cmin, vmax=cmax)
             axx, p = self.plotPitchAngles(self.ax,
                 self.rbspicedata['Epoch'], 
-                self.rbspicedata['FEDU_AlphaRange'][:, tel, :], 
-                flux[:, tel], cmin=cmin, cmax=cmax)
+                self.rbspicedata['FEDU_AlphaRange'][:, tel, :], flux[:, tel],
+                cmin=cmin, cmax=cmax, removeLowRate=removeLowRate)
                 
 #        cb = plt.colorbar(sc, ax=self.ax, cax=cax, 
 #            label=r'Flux $(keV \ cm^2 \ s \ sr)^-1$')
@@ -251,14 +252,15 @@ class plot_rbspice:
             plt.show()
         return self.ax, p
         
-    def plotPitchAngles(self, ax, time, alpha, flux, cmin=None, cmax=None):
+    def plotPitchAngles(self, ax, time, alpha, flux, cmin=None, cmax=None,
+            removeLowRate=True):
         """
         
         """
         ax.xaxis_date()
         
         patches = []
-        verticies = self._makeAlphaTimeVertecies_(time, alpha)
+        verticies = self._makeAlphaTimeVertecies_(time, alpha, removeLowRate)
         
         for i in range(verticies.shape[-1]):
             patches.append(Polygon(verticies[:, :, i]))
@@ -281,10 +283,13 @@ class plot_rbspice:
         return ax, p
         
         
-    def _makeAlphaTimeVertecies_(self, times, alphas):
+    def _makeAlphaTimeVertecies_(self, times, alphas, removeLowRate=True):
         verticies = np.nan*np.ones((4, 2, len(times)-1))
         numDates = mdates.date2num(times)
         for idt in range(len(times)-1):
+            if removeLowRate:
+                if (times[idt+1] - times[idt]).total_seconds() > 5:
+                    continue
             verticies[:, :, idt] = [[numDates[idt], alphas[idt,0]], 
                                     [numDates[idt], alphas[idt,1]], 
                                     [numDates[idt+1],alphas[idt,1]], 

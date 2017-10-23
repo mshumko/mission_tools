@@ -362,11 +362,11 @@ class magEISspectra:
         if plotCb:
             if aspect is None:
                 self.cb = plt.colorbar(self.sc, ax = self.ax, cax = cax,
-                orientation='vertical', label = 'counts/sec')
+                orientation='vertical', label = r'$(keV \ cm^2 \ sr \ s)^{-1}$')
             else:
                 self.cb = plt.colorbar(self.sc, ax = self.ax, cax = cax,
                 orientation='vertical', aspect = aspect, 
-                    label = 'counts/sec')
+                    label = r'$(keV \ cm^2 \ sr \ s)^{-1}$')
         if ax is None:
             self.ax.set_xlim(self.times[0,0], 
                 self.times[-1, -1])
