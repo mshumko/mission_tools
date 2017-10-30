@@ -592,8 +592,8 @@ class magEISspectra:
         if self.tBounds is not None:
             magInd = np.where((self.magEphem['DateTime'] >= self.tBounds[0]) &
                 (self.magEphem['DateTime'] <= self.tBounds[1]))[0]
-            assert len(magInd) > 0, ('ERROR: no filtered magEphem found in the time'
-            ' range specified! Check tBounds keyword')
+            assert len(magInd) > 0, ('ERROR: no filtered magEphem found'
+                ' in the time range specified! Check tBounds keyword')
         else:
             magInd = range(len(self.magEphem['DateTime']))
 
@@ -601,24 +601,26 @@ class magEISspectra:
         self.magEphem['Bmin'] = self.magEphem['Bmin_gsm'][magInd, 3]
         self.magEphem['Lstar'] = self.magEphem['Lstar'][magInd, :]
         self.magEphem['EDMAG_MLT'] = self.magEphem['EDMAG_MLT'][magInd]
-        self.magEphem['Loss_Cone_Alpha_n'] = self.magEphem['Loss_Cone_Alpha_n'][magInd]
-        self.magEphem['Loss_Cone_Alpha_s'] = self.magEphem['Loss_Cone_Alpha_s'][magInd]
+        self.magEphem['Loss_Cone_Alpha_n'] = self.magEphem['Loss_Cone'
+            '_Alpha_n'][magInd]
+        self.magEphem['Loss_Cone_Alpha_s'] = self.magEphem['Loss_Cone'
+            '_Alpha_s'][magInd]
         self.magEphem['BoverBeq'] = self.magEphem['BoverBeq'][magInd]
         return
 
 if __name__ == '__main__':
-    rb_id = 'A'
-    date = datetime(2017, 7, 15)
-    fluxObj = magEISspectra(rb_id, date, dataLevel = 3)
-    #fluxObj.tBounds = [datetime(2017, 3, 31, 11, 15), datetime(2017, 3, 31, 11, 20)]
-    fluxObj.loadMagEIS(highrate=False, relType='rel03')
-    fluxObj.plotHighRateTimeSeries(smooth = 10, n_sectors=11)
-    #fluxObj.plotHighRateSpectra(E_ch = 1, scatterS = 50)
-
 ###    rb_id = 'A'
-###    date = datetime(2017, 3, 31)
+###    date = datetime(2017, 7, 15)
 ###    fluxObj = magEISspectra(rb_id, date, dataLevel = 3)
-###    fluxObj.tBounds = [datetime(2017, 3, 31, 11, 15), datetime(2017, 3, 31, 11, 20)]
-###    fluxObj.loadMagEIS(instrument = 'LOW', highrate = True)
-###    fluxObj.plotHighRateTimeSeries(smooth = 10)
+###    #fluxObj.tBounds = [datetime(2017, 3, 31, 11, 15), datetime(2017, 3, 31, 11, 20)]
+###    fluxObj.loadMagEIS(highrate=False, relType='rel03')
+###    fluxObj.plotHighRateTimeSeries(smooth = 10, n_sectors=11)
 ###    #fluxObj.plotHighRateSpectra(E_ch = 1, scatterS = 50)
+
+    rb_id = 'A'
+    date = datetime(2017, 3, 31)
+    fluxObj = magEISspectra(rb_id, date, dataLevel = 3)
+    fluxObj.tBounds = [datetime(2017, 3, 31, 11, 15), datetime(2017, 3, 31, 11, 20)]
+    fluxObj.loadMagEIS(instrument = 'LOW', highrate = True)
+    fluxObj.plotHighRateTimeSeries(smooth = 10)
+    #fluxObj.plotHighRateSpectra(E_ch = 1, scatterS = 50)
