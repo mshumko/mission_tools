@@ -209,7 +209,34 @@ class magEISspectra:
             self.times = self.times.flatten()
         return self.times
         
+    def get_resolved_flux(self, smooth = None):
+        """
+        INPUTS:
+            OPTIONAL:
+            smooth = None: Amount to smooth the flux by.
+        """
+        est_spin = 11
+        spin_thresh = 0.1
+        if self.highrate:
+            n_sectors = 1000
+        else:
+            n_sectors = 64
+            
+        # Calculate the times array
+        self.resolveSpinTimes(spin_thresh, est_spin, n_sectors)
+        self.times = self.times[:, :n_sectors].flatten()
         
+        # Caluclate the flux.
+        nT, nSectFull, nE = self.magEISdata[self.fluxKey].shape
+        self.flux = np.nan*np.ones((nT*n_sectors, nE-1), dtype=float)
+        for ee in range(nE-1): # There are currently 7 working channels.
+            self.flux[:, ee] = self.magEISdata[self.fluxKey][
+                :, :n_sectors, ee].flatten()/self.G0dE[ee]
+            if smooth is not None:
+                self.flux[:, ee] = np.convolve(self.flux[:, ee], 
+                    np.ones(smooth)/smooth, mode='same')
+
+
     def plotHighRateTimeSeries(self, **kwargs):
         """
         NAME:    plotHighRateTimeSeries(self, **kwargs)
