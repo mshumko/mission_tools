@@ -1,3 +1,4 @@
 *.pyc
 directries.py
 /__pycache__/
+.vscode/
