@@ -235,6 +235,12 @@ class magEISspectra:
             if smooth is not None:
                 self.flux[:, ee] = np.convolve(self.flux[:, ee], 
                     np.ones(smooth)/smooth, mode='same')
+        
+        # Remove bad values
+        validInd = np.where(self.flux[:, 0] > 0)[0]
+        self.flux = self.flux[validInd, :]
+        self.times = self.times[validInd]
+        return self.times, self.flux
 
 
     def plotHighRateTimeSeries(self, **kwargs):
@@ -305,7 +311,7 @@ class magEISspectra:
             # Now smooth the flux
             self.flux = np.convolve(flux, np.ones(smooth)/smooth, mode='same')
             
-            validF = np.where(flux > 0)[0]
+            validF = np.where(flux > 100)[0]
             flatT = self.times[:, :n_sectors].flatten()
 
             self.bx.plot(flatT[validF], self.flux[validF], 
