@@ -230,9 +230,9 @@ class plot_rbspice:
                     self.rbspicedata['Epoch'], 
                     self.rbspicedata['FEDU_AlphaRange'][:, tel, :], flux[:, tel],
                     cmin=cmin, cmax=cmax, removeLowRate=removeLowRate)
-        if plotColorbar:        
-            cb = plt.colorbar(p, ax=self.ax, cax=cax, 
-                label=r'Flux $(keV \ cm^2 \ s \ sr)^-1$')
+                
+        cb = plt.colorbar(p, ax=self.ax, cax=cax, 
+           label=r'Flux $(keV \ cm^2 \ s \ sr)^-1$')
 
         self.ax.set(ylabel=r'$\alpha_{L}$', xlabel='UTC', 
             title='RBSP-{} RBSPICE {}'.format(self.sc_id.upper(), self.date.date()))
