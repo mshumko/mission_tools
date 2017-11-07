@@ -173,22 +173,31 @@ class plot_rbspice:
                  telescope (energy and time on y and x axes, and color
                  is the FEDU amplitude).
         INPUT:   REQUIRED:
-                    Ech: Energy channel to plot
+                    Ech: Energy channel(s) to plot. If multiple are provided, will average.
                  OPTIONAL:
-                    ax = None: Subplot object to plot on
-                    tel = 0: telescope to plot
+                    ax = None: Subplot object (will create self.ax if none)
+                    cmin = None: Colorbar minimum
+                    cmax = None: Colorbar maximum
+                    cax = None: Colorbar axis object
+                    #logE = True: 
+                    basicScatter = True: Plot the data as scatter with circles (not quadrilaterals)
+                    Elabel = True: Add the energy channel label in the upper right corner.
+                    telescopes = self.rbspicedata['Telescope']: which telescopes to plot.
+                    removeLowRate = True: Remove any data that was aquired over > 5 s.
         AUTHOR:  Mykhaylo Shumko
         RETURNS: None
-        MOD:     2017-10-17
+        MOD:     2017-11-07
         """
         ax = kwargs.get('ax', None)
         cmin = kwargs.get('cmin', None)
         cmax = kwargs.get('cmax', None)
         cax = kwargs.get('cax', None)
-        logE = kwargs.get('logE', True)
+        #logE = kwargs.get('logE', True)
+        basicScatter = kwargs.get('basicScatter', True)
         Elabel = kwargs.get('Elabel', True)      
         telescopes = kwargs.get('telescopes', self.rbspicedata['Telescope'])
         removeLowRate = kwargs.get('removeLowRate', True)
+        plotColorbar = kwargs.get('plotColorbar', True)
                 
         flux = self.rbspicedata['FEDU'][:, :, Ech]/1000
         
@@ -211,23 +220,24 @@ class plot_rbspice:
         else:
             self.ax = ax
             
-        for tel in range(len(telescopes)):
-            #print(self.rbspicedata['FEDU_AlphaRange'][:, tel, :])
-            #print(self.rbspicedata['FEDU_AlphaRange'].attrs)
-#            sc = self.ax.scatter(self.rbspicedata['Epoch'], 
-#                self.rbspicedata['Alpha'][:, tel], 
-#                c=flux[:, tel], 
-#                norm=colors.LogNorm(), vmin=cmin, vmax=cmax)
-            axx, p = self.plotPitchAngles(self.ax,
-                self.rbspicedata['Epoch'], 
-                self.rbspicedata['FEDU_AlphaRange'][:, tel, :], flux[:, tel],
-                cmin=cmin, cmax=cmax, removeLowRate=removeLowRate)
+        for tel in range(len(telescopes)): 
+            if basicScatter:           
+                p = self.ax.scatter(self.rbspicedata['Epoch'], 
+                    self.rbspicedata['Alpha'][:, tel], 
+                    c=flux[:, tel], norm=colors.LogNorm(), vmin=cmin, vmax=cmax)
+            else:
+                axx, p = self.plotPitchAngles(self.ax,
+                    self.rbspicedata['Epoch'], 
+                    self.rbspicedata['FEDU_AlphaRange'][:, tel, :], flux[:, tel],
+                    cmin=cmin, cmax=cmax, removeLowRate=removeLowRate)
                 
-#        cb = plt.colorbar(sc, ax=self.ax, cax=cax, 
-#            label=r'Flux $(keV \ cm^2 \ s \ sr)^-1$')
+        cb = plt.colorbar(p, ax=self.ax, cax=cax, 
+           label=r'Flux $(keV \ cm^2 \ s \ sr)^-1$')
 
-        self.ax.set(ylabel=r'$\alpha_{sc}$', xlabel='UTC', 
+        self.ax.set(ylabel=r'$\alpha_{L}$', xlabel='UTC', 
             title='RBSP-{} RBSPICE {}'.format(self.sc_id.upper(), self.date.date()))
+        if basicScatter and ax is None and self.tBounds is not None:
+            self.ax.set_xlim(self.tBounds)
         
         # Write the energy channel in the plot
         if Elabel:
