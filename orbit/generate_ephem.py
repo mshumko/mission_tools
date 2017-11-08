@@ -189,6 +189,9 @@ if __name__ == '__main__':
     days = 30
     times = [datetime(2017, 11, 8, 0, 0, 0) + timedelta(
     minutes = i) for i in range(1440*days)]
+    
+#    times = [datetime(2017, 11, 8, 0, 0, 0) + timedelta(
+#    seconds = i) for i in range(86401)]
         
     p = SGP4_ephemeris(times, line1 = line1, line2 = line2)
     X, errCode = p.propagate()
