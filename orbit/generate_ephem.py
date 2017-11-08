@@ -177,17 +177,17 @@ class SGP4_ephemeris:
 
 if __name__ == '__main__':
     start_time = time.time()
-    sc_id = 4
+    sc_id = 3
     
     if sc_id == 3:
-        line1 = ('1 40377U 15003B   17104.94304517 +.00004057 +00000-0 +17662-3 0  9997')
-        line2 = ('2 40377 099.1195 276.3179 0136991 211.4898 147.8077 15.14918615121429')
+        line1 = ('1 40377U 15003B   17311.52700010 +.00003743 +00000-0 +15915-3 0  9999')
+        line2 = ('2 40377 099.1117 164.1297 0132938 247.0426 111.6729 15.16219917152717')
     elif sc_id == 4:
-        line1 = ('1 40378U 15003C   17104.93616444 +.00003704 +00000-0 +16150-3 0  9991')
-        line2 = ('2 40378 099.1198 276.3423 0137205 211.4224 147.8754 15.14937925121424')
+        line1 = ('1 40378U 15003C   17312.17745147  .00004501  00000-0  19013-3 0  9998')
+        line2 = ('2 40378  99.1120 164.9570 0133134 244.7723 113.9655 15.16241997152825')
               
-    days = 40
-    times = [datetime(2017, 5, 1, 0, 0, 0) + timedelta(
+    days = 30
+    times = [datetime(2017, 11, 8, 0, 0, 0) + timedelta(
     minutes = i) for i in range(1440*days)]
         
     p = SGP4_ephemeris(times, line1 = line1, line2 = line2)
@@ -195,12 +195,12 @@ if __name__ == '__main__':
     failedInx = p.checkError()
     
     if len(failedInx) == 0:
-        p.write_to_file('/home/mike/Dropbox/' + 
-        '0_firebird_research/Conjunctions/3_ephemData/', 
+        p.write_to_file('/home/mike/research/' 
+        'mission-tools/orbit/data/', 
         'FU' + str(sc_id) + '_SGP4_LLA_' + 
         times[0].date().isoformat() + '_to_' + 
         times[-1].date().isoformat() + 
-        '_gen_w_2017-04-16_TLE.txt')
+        '_gen_w_2017-11-08_TLE.txt')
     else:
         print('Some values failed to propegate!')
     print("Ephemeris execution time %s seconds" % (time.time() - start_time))
