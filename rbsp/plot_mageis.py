@@ -23,18 +23,22 @@ except SystemError:
 class PlotHighrate:
     def __init__(self, sc_id, date, **kwargs):
         self.sc_id = sc_id
-
+        # Modify these parameters if working with unusual data.
+        self.est_spin = kwargs.get('est_spin', 10.9) # Spin period in seconds
+        self.n_sectors = kwargs.get('n_sectors', None) # Number of highrate sectors
+        if self.n_sectors is None:
+            if self.sc_id.lower() == 'a':
+                self.n_sectors = 1000
+            else:
+                self.n_secotrs = 64
+        # Threshold for self.est_spin to resolve the spin time.
+        self.spin_thresh = kwargs.get('spin_thresh', 0.1)
         return
 
-    def _resolveSpinTimes(self, spin_thresh=0.1, est_spin=10.9, 
-                        n_sectors=None):
+    def _resolveSpinTimes(self):
         """
         This funciton creates an array of times by spin sector.
-        """
-        # If number of pitch angle sectors are not specified, find it.
-        if n_sectors is None:
-            n_sectors = 1000
-            
+        """  
         # If self.times array is not created, make it
         #if not hasattr(self, "times"):
         self.times = np.repeat(self.magEISdata['Epoch'][:, np.newaxis],
@@ -45,60 +49,51 @@ class PlotHighrate:
             # Logic that checks for data gaps. If dTSpin is outside 
             # est_spin +/-(1+spin_thresh), assume est_spin spin period
             dTspin = (self.times[i+1, 0] - self.times[i, 0]).total_seconds()
-            if ((dTspin > est_spin*(1+spin_thresh)) & 
-                (dTspin < est_spin*(1-spin_thresh)) ):
-                dTspin = est_spin
+            if ((dTspin > self.est_spin*(1+self.spin_thresh)) & 
+                (dTspin < self.est_spin*(1-self.spin_thresh)) ):
+                dTspin = self.est_spin
                 
-            self.times[i, :n_sectors] = np.array([self.times[i, iAlpha] + 
-                timedelta(seconds = iAlpha*dTspin/n_sectors) for iAlpha in 
-                range(n_sectors)])
+            self.times[i, :self.n_sectors] = np.array([self.times[i, iAlpha] + 
+                timedelta(seconds = iAlpha*dTspin/self.n_sectors) for iAlpha in 
+                range(self.n_sectors)])
         # This just interpolates the last spin assuming the previous spin
-        self.times[-1, :n_sectors] = np.array([self.times[-1, iAlpha] + 
-                timedelta(seconds = iAlpha*dTspin/n_sectors) for iAlpha in 
-                range(n_sectors)]) 
+        self.times[-1, :self.n_sectors] = np.array([self.times[-1, iAlpha] + 
+                timedelta(seconds = iAlpha*dTspin/self.n_sectors) for iAlpha in 
+                range(self.n_sectors)]) 
                  
         # Flatten times for time series plotting.
-        self.times = self.times[:, :n_sectors].flatten()
+        self.times = self.times[:, :self.n_sectors].flatten()
         return self.times
 
-    def getFluxTimeseries(self, n_sectors, fluxConvert=True, smooth=1):
+    def getFluxTimeseries(self, fluxConvert=True, smooth=1):
         """
 
         """
         nT, nS, nE = self.magEISdata['HighRate'].shape
-        self.flux = np.nan*np.ones((nT*n_sectors, nE), dtype=float)
+        self.flux = np.nan*np.ones((nT*self.n_sectors, nE), dtype=float)
 
         for ee in range(nE-1): 
-            self.flux[:, ee] = self.magEISdata['HighRate'][:, :n_sectors, ee].flatten()
+            self.flux[:, ee] = self.magEISdata['HighRate'][:, :self.n_sectors, ee].flatten()
             if fluxConvert:
                 self.flux[:, ee] /= self.G0dE[ee]
             if smooth > 1:
-                self.flux[:, ee] = np.convolve(self.flux[:, ee], np.ones(smooth)/smooth, mode='same')
+                self.flux[:, ee] = np.convolve(self.flux[:, ee], np.ones(smooth)/smooth, 
+                    mode='same')
         return       
 
     def plotTimeseries(self, **kwargs):
         """
-        NAME:    plotHighRateTimeSeries(self, **kwargs)
-        USE:     This function plots the hight rate magEIS flux as a timeseries
+        NAME:    
+        USE:     
         INPUT:   REQUIRED:
                     None
                  OPTIONAL:
-                    'ax'= None: subplot object to plot on. If not specified, 
-                        will create own figure.
-                    'E_ch'= 0: Energy channel to plot
-                    'downsampleAlpha' = 1: Plot the downsampleAlpha'th pitch 
-                        angle for quicker plotting on slower machines.
-                    'deflatTime' = True: Refromat the 'epoch' array so that each
-                        pitch angle is attributed to a unique time stamp. Saved 
-                        self.times
+                    
         AUTHOR:  Mykhaylo Shumko
         RETURNS: 
         MOD:     2017-07-04
         """
-        est_spin = kwargs.get('est_spin', 10.9) # Seconds
-        n_sectors = kwargs.get('n_sectors', None)
-        # Fraction of the estimated spin period.
-        spin_thresh = kwargs.get('spin_thresh', 0.1) 
+        # Plotting parameters
         ax = kwargs.get('ax', None)
         E_ch = kwargs.get('E_ch', None)
         deflatTime = kwargs.get('deflatTime', True) # alphaSpinTimes
@@ -106,12 +101,7 @@ class PlotHighrate:
         chLegend = kwargs.get('chLegend', True)   
         self.alphaKey = kwargs.get('alphaKey', 'HighRate_Alpha360')  
         pltFlux = kwargs.get('pltFlux', True) 
-        
-        if n_sectors is None:
-            if self.sc_id.upper() == 'A':
-                n_sectors = 1000
-            else:
-                n_sectors = 64
+        pltLabels = kwargs.get('pltLabels', True)
 
         if ax is None:
             fig = plt.figure(figsize=(15, 10), dpi=80, facecolor = 'white')
@@ -123,9 +113,9 @@ class PlotHighrate:
         # Deflatten the 1d time array into 2d where each pitch angle is given 
         # a unique time stamp to where the spacecraft was pointing at the time.
         if deflatTime:
-            self._resolveSpinTimes(spin_thresh, est_spin, n_sectors)
+            self._resolveSpinTimes()
         # Get flux
-        self.getFluxTimeseries(n_sectors, fluxConvert=pltFlux, smooth=smooth) 
+        self.getFluxTimeseries(fluxConvert=pltFlux, smooth=smooth) 
         
         if E_ch is None:
             E_ch = np.arange(7)
@@ -139,9 +129,16 @@ class PlotHighrate:
                 label='{}-{} keV'.format(self.Elow[ee],
                 self.Ehigh[ee]))
         self.bx.set(yscale='log')
-        if chLegend: 
+        if chLegend: # Add legend
             self.bx.legend()
-        if ax is None:
+        if pltLabels: # Add plot labels
+            if pltFlux:
+                fluxLabel = r'Electron flux $(cm^2 \ sr \ s \ keV)^{-1}$'
+            else:
+                fluxLabel = r'Electron counts/s'
+            self.bx.set(xlabel='UTC', ylabel=fluxLabel, title='MagEIS-{} Highrate from {}'.format(
+                self.sc_id.upper(), self.date.date()))
+        if ax is None: # If ax was not passed, show plot
             plt.show()    
         return self.bx
 
