@@ -19,12 +19,12 @@ class TestMagEISLib(unittest.TestCase):
         fluxObj.loadMagEIS(instrument='LOW', highrate=True)
         fluxObj.plotHighRateTimeSeries(ax=ax, smooth=10)
 
-    def test_int(self):
-        fig, ax = plt.subplots()
-        fluxObj = plot_mageis.magEISspectra(RB_ID, DATE, dataLevel = 3)
-        fluxObj.tBounds = T_BOUNDS
-        fluxObj.loadMagEIS(highrate=False, relType='int')
-        fluxObj.plotHighRateTimeSeries(ax=ax, smooth = 10, n_sectors=11)
+    # def test_int(self):
+    #     fig, ax = plt.subplots()
+    #     fluxObj = plot_mageis.magEISspectra(RB_ID, DATE, dataLevel = 3)
+    #     fluxObj.tBounds = T_BOUNDS
+    #     fluxObj.loadMagEIS(highrate=False, relType='int')
+    #     fluxObj.plotHighRateTimeSeries(ax=ax, smooth = 10, n_sectors=11)
         
     
     def test_rel03(self):

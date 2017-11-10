@@ -45,7 +45,8 @@ def findFilename(rb_id, joinDate, data):
     
 if __name__ == '__main__':
     rb_id = 'b'
-    dates = [datetime(2017, 7, 1) + timedelta(days=d) for d in range(30)]
+    #dates = [datetime(2017, 7, 1) + timedelta(days=d) for d in range(30)]
+    dates = datetime(2017, 3, 31)
     fPath = '/home/mike/research/rbsp/data/mageis/rbsp{}'.format(rb_id)
     downloadMagEIS(rb_id, dates, fPath, dataLevel=3)
     
