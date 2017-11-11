@@ -37,6 +37,8 @@ class PlotHighrate:
                     alphaKey = HighRate_Alpha360: Which pitch angle
                         data product to plot in the pitch angle
                         scatter plot function.
+                        HighRate_Alpha is pitch angles 0-180 deg,
+                        and HighRate_Alpha360 is from 0-360 deg.
         AUTHOR:  Mykhaylo Shumko
         RETURNS: None
         MOD:     2017-11-10
@@ -284,23 +286,248 @@ class PlotHighrate:
             plt.show()
         return self.ax   
 
-class PlotMageis(PlotHighrate):
-    def __init__(self, sc_id, date, instrument, dtype, **kwargs):
-        assert dtype in ['highrate', 'rel03'], 'dtype must be highrate or rel03'
-        if dtype == 'highrate':
-            PlotHighrate.__init__(self, sc_id, date, **kwargs)
+class PlotRel03:
+    def __init__(self, sc_id, date, **kwargs):
+        # Get basic key parameters
+        self.fluxKey = kwargs.get('fluxKey', 'FEDU')
+        # Calculate the energy channel values for the day.
+        self._calcDailyElectronEnergies() 
+        return None
+
+    def plotSpinAvgFlux(self, ax=None, **kwargs):
+        """
+        NAME:    plotSpinAvgFlux(self, ax = None, **kwargs)
+        USE:     Plots the spin averaged electron flux from magEIS in line format.
+        INPUT:   REQUIRED:
+                    None
+                 OPTIONAL:
+                    ax = None: A subplot object. If none specied, it will 
+                        create one.
+                    yscale = 'log': y scale of the plot.
+                    ymin = 1: lower flux bound.
+                    pltLegendLoc = 1: If False, will not plot legend, otherwise 
+                        will plot in the location given by pltLegendLoc as 
+                        documented in matplotlib.pylab.
+                    pltXlabel = True: Plot or not the x label
+                    pltTitle = True: Plot or not the title.
+        AUTHOR:  Mykhaylo Shumko
+        RETURNS: Subplot object, self.ax
+        MOD:     2017-07-06
+        """
+        yscale = kwargs.get('yscale', 'log')
+        ymin = kwargs.get('ymin', 1)
+        pltLegendLoc = kwargs.get('pltLegendLoc', 1)
+        pltXlabel = kwargs.get('pltXlabel', True)
+        pltTitle = kwargs.get('pltTitle', True)
+
+        if ax is None:
+            fig = plt.figure(figsize=(15, 10), dpi=80, facecolor = 'white')
+            gs = gridspec.GridSpec(1,1)
+            self.ax = fig.add_subplot(gs[0, 0], facecolor='w')
+        else:
+            self.ax = ax
+        c = ['r', 'b', 'g', 'c', 'm', 'k']
+
+        # If the energy channel is errorous, skip it.
+        nE = np.where(~np.isnan(self.magEISdata['eEnergy']))[0]
+        c = iter(cm.rainbow(np.linspace(0, 1, len(nE))))
+        # Plot the sping-averaged electron flux (FESA)
+        for E in nE:
+            # Find the non-error flux values
+            validInd = np.where(self.magEISdata['FESA'][:, E] != -1E31)
+            self.ax.plot(self.magEISdata['Epoch'][validInd[0]], 
+                self.magEISdata['FESA'][validInd[0], E], c = next(c), 
+                label = '{} keV'.format(int(self.magEISdata['eEnergy'][E])))
+        
+        if pltLegendLoc:
+            self.ax.legend(loc = pltLegendLoc)
+        self.ax.set_yscale(yscale)
+        self.ax.set_ylim(bottom = ymin)
+        self.ax.set_ylabel(r'Electron flux $(cm^2 \ sr \ s \ keV)^{-1}$')
+        if pltTitle:
+            self.ax.set_title('RBSP{} magEIS from {} '.format
+                (self.sc_id.upper(), self.date.date().isoformat()))
+        if pltXlabel:
+            self.ax.set_xlabel('UTC')
+        if ax is None:
+            plt.show()
+        return self.ax
+
+    def plotUnidirectionalFlux(self, alpha, energy=None, ax=None, **kwargs):
+        """
+        NAME:    plotUnidirectionalFlux(self, ax = None)
+        USE:     Plots the unidirectional electron flux from magEIS as a lineplot.
+        INPUT:   REQUIRED:
+                    None
+                 OPTIONAL:
+                    ax = None: A subplot object. If none specied, it will 
+                        create one.
+                    yscale = 'log': y scale of the plot.
+                    ymin = 1: lower flux bound.
+                    pltLegendLoc = 1: If False, will not plot legend, otherwise 
+                        will plot in the location given by pltLegendLoc as 
+                        documented in matplotlib.pylab.
+                    pltXlabel = True: Plot or not the x label
+                    pltTitle = True: Plot or not the title.
+        AUTHOR:  Mykhaylo Shumko
+        RETURNS: Subplot object, self.ax
+        MOD:     2017-11-10
+        """
+        yscale = kwargs.get('yscale', 'log')
+        ymin = kwargs.get('ymin', 1)
+        pltLegendLoc = kwargs.get('pltLegendLoc', 1)
+        pltXlabel = kwargs.get('pltXlabel', True)
+        pltTitle = kwargs.get('pltTitle', True)
+
+        if ax is None:
+            fig = plt.figure(figsize=(15, 10), dpi=80, facecolor = 'white')
+            gs = gridspec.GridSpec(1,1)
+            self.ax = fig.add_subplot(gs[0, 0], facecolor='w')
+        else:
+            self.ax = ax
+            
+        # Find indicies closest to user alpha input
+        self._findAlphaIdx(alpha)
+        
+        if energy is None:
+            self.energyIdx = np.arange(len(self.magEISdata['eEnergy']))
+        else:
+            self._findEnergyIdx(energy)
+            
+        # Replace the error values with nans
+        self.magEISdata[self.fluxKey][self.magEISdata[self.fluxKey] == -1e31] = np.nan
+        
+        # Plot all of the energies and pitch angles.
+        for e in self.energyIdx:
+            for a in self.alphaIdx:
+                self.ax.plot(self.magEISdata['Epoch'][:], 
+                    self.magEISdata[self.fluxKey][:, a, e],
+                    label = r'E = {} keV, $\alpha$ = {}'.format(
+                    int(self.magEISdata['eEnergy'][e]), 
+                    int(self.magEISdata['FEDU_Alpha'][a])) )
+        if pltLegendLoc:
+            self.ax.legend(loc = pltLegendLoc)    
+        if pltXlabel:
+            self.ax.set_xlabel('UTC')
+        self.ax.set_ylabel(r'Electron flux $(cm^2 \ sr \ s \ keV)^{-1}$')  
+        self.ax.set_yscale(yscale)   
+        
+        if ax is None:
+            plt.show()
+        return self.ax
+
+    def _findAlphaIdx(self, alpha):
+        """
+        NAME:    _findAlphaIdx(self, alpha)
+        USE:     Finds the indicies of pitch angles closest to the pitch angles
+                 specified by the alpha array. 
+        INPUT:   REQUIRED:
+                    alpha: an array of input 
+        AUTHOR:  Mykhaylo Shumko
+        RETURNS: alphaIdx: Pitch angle index array
+        MOD:     2017-07-06
+        """
+        # Copy the FEDU_Alpha array and insert nan's for error values of -1E31.
+        FEDU_Alpha = np.array(self.magEISdata['FEDU_Alpha'])
+        FEDU_Alpha[FEDU_Alpha == -1E31] = np.nan
+        
+        if isinstance(alpha, int): # If alpha is an int
+            # find indicies of the FEDU_Alpha closest to user alpha input.
+            idx = np.nanargmin(np.abs(FEDU_Alpha - alpha))
+            self.alphaIdx = np.array([idx])
+        else: # If alpha is an array.
+            self.alphaIdx = -1*np.ones(len(alpha), dtype = np.int)
+            # Iterate, and do the same as the other case in the if statement.
+            for i in range(len(self.alphaIdx)):
+                self.alphaIdx[i] = np.nanargmin(np.abs(FEDU_Alpha - alpha[i]))
+        return self.alphaIdx
+
+    def _findEnergyIdx(self, energy):
+        """
+        NAME:    _findAlphaIdx(self, alpha)
+        USE:     Finds the indicies of energies closest to the energies
+                 specified by the 'eEnergy' array
+        INPUT:   REQUIRED:
+                    alpha: an array of input 
+        AUTHOR:  Mykhaylo Shumko
+        RETURNS: alphaIdx: Energy index array
+        MOD:     2017-07-06
+        """
+        # Copy the FEDU_Alpha array and insert nan's for error values of -1E31.
+        FEDU_energy = np.array(self.magEISdata['eEnergy'])
+
+        if isinstance(energy, int): # If alpha is an int
+            # find indicies of the FEDU_Alpha closest to user alpha input.
+            idx = np.nanargmin(np.abs(FEDU_energy - energy))
+            self.energyIdx = np.array([idx])
+        else: # If alpha is an array.
+            self.energyIdx = -1*np.ones(len(energy), dtype = np.int)
+            # Iterate, and do the same as the other case in the if statement.
+            for i in range(len(self.energyIdx)):
+                self.energyIdx[i] = np.nanargmin(np.abs(FEDU_energy - energy[i]))
+        return self.energyIdx
+
+    def _calcDailyElectronEnergies(self, method='mode'):
+        """
+        NAME:    _calcDayEnergies(self, method='mode')
+        USE:     This function will add a new key, the energy channels for
+                 electrons
+        INPUT:   REQUIRED:
+                    None
+                 OPTIONAL:
+                    method = 'mode': How to calculate the energies, 
+                        Can use mean, median, or mode.
+        AUTHOR:  Mykhaylo Shumko
+        RETURNS: self.magEphem['eEnergy']
+        MOD:     2017-07-04
+
+        ### MAYBE MAKE THIS MORE GENERAL WITH ENERGY DELTAS/WIDTHS? ###
+        """
+        assert method in ['mean', 'median', 'mode'], ('ERROR, statistical method'
+        ' to calculate the electron energies is not "mean", "median", or "mode".')
+
+        # Find error values and replace with nan
+        validInd = np.where(self.magEISdata['FEDU_Energy'] == -1E31)
+        self.magEISdata['FEDU_Energy'][validInd] = np.nan
+    
+        if method is 'mean':
+            self.magEISdata['eEnergy'] = np.nanmean(self.magEISdata['FEDU_Energy'], 
+                axis = 0)
+        elif method is 'median':
+            raise ValueError('Still not implemented!')
+            self.magEISdata['eEnergy'] = np.nanmedian(self.magEISdata['FEDU_Energy'])
+        elif method is 'mode':
+            self.magEISdata['eEnergy'] = scipy.stats.mode(
+                self.magEISdata['FEDU_Energy'], axis = 0, nan_policy = 'omit')[0][0]
+        return self.magEISdata['eEnergy']
+
+class PlotMageis(PlotHighrate, PlotRel03):
+    def __init__(self, sc_id, date, dtype, **kwargs):
+        """
+
+        """
+        # Initialize basic variables and paths
         self.date = date
         self.sc_id = sc_id
         self.dtype = dtype
-        self.instrument = instrument
         self.mageisDir = kwargs.get('mageisDir', directories.mageis_dir(sc_id))
         self.magEphemDir = kwargs.get('magEphemDir', 
             directories.rbsp_magephem_dir(sc_id))
         self.tRange = kwargs.get('tRange', None) 
         self.dataLevel = kwargs.get('dataLevel', 3)
 
+        assert dtype in ['highrate', 'rel03'], 'dtype must be highrate or rel03'
+        self.instrument = kwargs.get('instrument', None)
+        if (dtype == 'highrate') and (self.instrument is None):
+            raise TypeError('Need to specify instrument for highrate data. '
+                '(LOW, M35, M75, HIGH)')
         self._loadmageis() # Load MagEIS data
-        self._getDetectorParams() # Get instrument parameters
+
+        if dtype == 'highrate': # Initialize parent highrate class
+            PlotHighrate.__init__(self, sc_id, date, **kwargs)
+            self._getDetectorParams() # Get instrument parameters
+        else: # Initialize parent rel03 class
+            PlotRel03.__init__(self, sc_id, date, **kwargs)
         return
 
     def loadMagEphem(self, Bmodel='TS04D'):
@@ -415,7 +642,15 @@ if __name__ == '__main__':
     rb_id = 'A'
     date = datetime(2017, 3, 31)
     tRange = [datetime(2017, 3, 31, 11, 15), datetime(2017, 3, 31, 11, 25)]
-    instrument = 'LOW'
-    dtype = 'highrate'
-    pltObj = PlotMageis(rb_id, date, instrument, dtype, tRange=tRange)
-    pltObj.plotAlpha() #plotTimeseries()
+
+    # Test rel03 data plotting
+    dtype = 'rel03'
+    rel03Obj = PlotMageis(rb_id, date, dtype, tRange=tRange)
+    rel03Obj.plotUnidirectionalFlux(90)
+    # # Test highrate data plotting
+    # instrument = 'LOW'
+    # dtype = 'highrate'
+    # hrObj = PlotMageis(rb_id, date, dtype, tRange=tRange, instrument=instrument,
+    #     alphaKey='HighRate_Alpha')
+    # hrObj.plotAlpha()
+    # hrObj.plotTimeseries()
