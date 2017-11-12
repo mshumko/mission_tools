@@ -134,6 +134,8 @@ class PlotHighrate:
         if self.instrument.lower() == 'low':
             nE = 7 # RBSP-B LOW detector has 7 working energy channels
 
+        self._resolveSpinTimes(True)
+
         for ee in range(nE): 
             self.flux[:, ee] = self.magEISdata[self.fluxKey][:, :self.n_sectors, ee].flatten()
             if fluxConvert:
@@ -141,7 +143,7 @@ class PlotHighrate:
             if smooth > 1:
                 self.flux[:, ee] = np.convolve(self.flux[:, ee], np.ones(smooth)/smooth, 
                     mode='same')
-        return self.flux
+        return self.times, self.flux
 
     def plotTimeseries(self, **kwargs):
         """
