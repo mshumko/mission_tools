@@ -51,11 +51,23 @@ class PlotHighrate:
             if self.sc_id.lower() == 'a':
                 self.n_sectors = 1000
             else:
-                self.n_secotrs = 64
+                self.n_sectors = 64
         # Threshold for self.est_spin to resolve the spin time.
         self.spin_thresh = kwargs.get('spin_thresh', 0.1)
         # Set data keys for pitch angle
-        self.alphaKey = kwargs.get('alphaKey', 'HighRate_Alpha360')
+        self.alphaKey = kwargs.get('alphaKey', None)
+        if self.alphaKey is None:
+            if self.sc_id.lower() == 'a':
+                self.alphaKey = 'HighRate_Alpha'
+            else:
+                self.alphaKey = 'FEDU_Unbinned_Alpha'
+
+        self.fluxKey = kwargs.get('fluxKey', None)
+        if self.fluxKey is None:
+            if self.sc_id.lower() == 'a':
+                self.fluxKey = 'HighRate'
+            else:
+                self.fluxKey = 'FEDU_Unbinned_0to360'
         return None
 
     def _resolveSpinTimes(self, deflatTime):
@@ -89,7 +101,7 @@ class PlotHighrate:
                 if ((dTspin > self.est_spin*(1+self.spin_thresh)) & 
                     (dTspin < self.est_spin*(1-self.spin_thresh)) ):
                     dTspin = self.est_spin
-                    
+                #print(self.sc_id, self.n_sectors)
                 self.times[i, :self.n_sectors] = np.array([self.times[i, iAlpha] + 
                     timedelta(seconds = iAlpha*dTspin/self.n_sectors) for iAlpha in 
                     range(self.n_sectors)])
@@ -117,11 +129,13 @@ class PlotHighrate:
         RETURNS: The self.flux (or count) timeseries array of (nTime, nEnergy)
         MOD:     2017-11-10
         """
-        nT, nS, nE = self.magEISdata['HighRate'].shape
+        nT, nS, nE = self.magEISdata[self.fluxKey].shape
         self.flux = np.nan*np.ones((nT*self.n_sectors, nE), dtype=float)
+        if self.instrument.lower() == 'low':
+            nE = 7 # RBSP-B LOW detector has 7 working energy channels
 
-        for ee in range(nE-1): 
-            self.flux[:, ee] = self.magEISdata['HighRate'][:, :self.n_sectors, ee].flatten()
+        for ee in range(nE): 
+            self.flux[:, ee] = self.magEISdata[self.fluxKey][:, :self.n_sectors, ee].flatten()
             if fluxConvert:
                 self.flux[:, ee] /= self.G0dE[ee]
             if smooth > 1:
@@ -224,7 +238,7 @@ class PlotHighrate:
         MOD:     2017-11-10
         """
         ax = kwargs.get('ax', None)
-        E_ch = kwargs.get('E_ch', 0)
+        E_ch = kwargs.get('E_ch', 1)
         scatterS = kwargs.get('scatterS', 10)
         cmin = kwargs.get('cmin', None)
         cmax = kwargs.get('cmax', None)
@@ -259,12 +273,21 @@ class PlotHighrate:
             vmin=cmin, vmax=cmax, s=scatterS)
         if plotCb:
             if aspect is None:
-                self.cb = plt.colorbar(self.sc, ax=self.ax, cax=cax,
-                orientation='vertical', label=r'$(keV \ cm^2 \ sr \ s)^{-1}$')
+                try:
+                    self.cb = plt.colorbar(self.sc, ax=self.ax, cax=cax,
+                        orientation='vertical', label=r'$(keV \ cm^2 \ sr \ s)^{-1}$')
+                except ValueError:
+                    print('****No valid data found.****')
+                    raise
             else:
-                self.cb = plt.colorbar(self.sc, ax=self.ax, cax=cax,
-                orientation='vertical', aspect=aspect, 
-                    label=r'$(keV \ cm^2 \ sr \ s)^{-1}$')
+                try:
+                    self.cb = plt.colorbar(self.sc, ax=self.ax, cax=cax,
+                        orientation='vertical', aspect=aspect, 
+                            label=r'$(keV \ cm^2 \ sr \ s)^{-1}$')
+                except ValueError:
+                    print('****No valid data found.****')
+                    raise
+
         if ax is None:
             self.ax.set_xlim(self.times[0], 
                 self.times[-1])
@@ -593,6 +616,7 @@ class PlotMageis(PlotHighrate, PlotRel03):
 
     def _getDetectorParams(self):
         # Define magEIS detector constants
+        
         if self.instrument.lower() == 'low':
             if self.sc_id.lower() == 'a':
                 self.Emid = [34, 54, 78, 108, 143, 182, 223] # keV
@@ -603,10 +627,10 @@ class PlotMageis(PlotHighrate, PlotRel03):
                     6.90E-2, 5.98E-2]
                 self.Ebins = [29, 41, 66, 92, 126, 164, 204, 247]
                 
-            if self.sc_id.upper() == 'b':
+            if self.sc_id.lower() == 'b':
                 self.Emid = [32, 51, 74, 101, 132, 168, 208] # keV
                 self.Elow = [27, 43, 63, 88, 117, 152, 193] # keV
-                self.Ehigh = [39, 63, 88, 117, 150, 188] # keV
+                self.Ehigh = [39, 63, 88, 117, 150, 188, None] # keV 
                 # Units of (keV cm^2 sr)
                 self.G0dE = [4.33E-2, 5.41E-2, 5.926E-2, 6.605E-2, 6.460E-2,
                     6.23E-2, 5.96E-2]
@@ -619,9 +643,14 @@ class PlotMageis(PlotHighrate, PlotRel03):
         splitDate = self.date.date().isoformat().split('-')
         joinedDate = ''.join(splitDate)
         if self.dtype == 'highrate':
-            searchStr = os.path.join(self.mageisDir, 
-                'rbsp{}_int_ect-mageis{}-hr-L{}_{}*.cdf'.format(self.sc_id.lower(), 
-                instrument.upper(), self.dataLevel, joinedDate))
+            if self.sc_id.lower() == 'a':
+                searchStr = os.path.join(self.mageisDir, 
+                    'rbsp{}_int_ect-mageis{}-hr-L{}_{}*.cdf'.format(self.sc_id.lower(), 
+                    self.instrument.upper(), self.dataLevel, joinedDate))
+            else:
+                searchStr = os.path.join(self.mageisDir, 
+                    'rbsp{}_int_ect-mageis{}-L{}_{}*.cdf'.format(self.sc_id.lower(), 
+                    self.instrument.upper(), self.dataLevel, joinedDate))
         if self.dtype == 'rel03':
             searchStr = os.path.join(self.mageisDir, 
                 'rbsp{}_rel03_ect-mageis-L{}_{}*.cdf'.format(self.sc_id.lower(), 
@@ -658,12 +687,13 @@ if __name__ == '__main__':
     # Test rel03 data plotting
     dtype = 'rel03'
     rel03Obj = PlotMageis(rb_id, date, dtype, tRange=tRange)
-    #rel03Obj.plotUnidirectionalFlux(90)
+    rel03Obj.plotUnidirectionalFlux(90)
     rel03Obj.plotEpinAvgSpectra()
-    # # Test highrate data plotting
-    # instrument = 'LOW'
-    # dtype = 'highrate'
-    # hrObj = PlotMageis(rb_id, date, dtype, tRange=tRange, instrument=instrument,
-    #     alphaKey='HighRate_Alpha')
-    # hrObj.plotAlpha()
-    # hrObj.plotTimeseries()
+
+    # Test highrate data plotting
+    instrument = 'LOW'
+    dtype = 'highrate'
+    hrObj = PlotMageis(rb_id, date, dtype, tRange=tRange, instrument=instrument,
+        alphaKey='HighRate_Alpha')
+    hrObj.plotAlpha()
+    hrObj.plotTimeseries()
