@@ -24,7 +24,7 @@ class PlotHighrate:
     def __init__(self, sc_id, date, **kwargs):
         """
         NAME:    PlotHighrate(self, sc_id, date, **kwargs)
-        USE:     This class plots the MagEIS highrate data.
+        USE:     This class plots the MagEIS highrate data. 
         INPUT:   REQUIRED:
                     sc_id: Either 'A' or 'B' (case doesnt matter).abs
                     date: A datetime object for title purposes.
@@ -288,37 +288,47 @@ class PlotHighrate:
 
 class PlotRel03:
     def __init__(self, sc_id, date, **kwargs):
+        """
+        NAME:    PlotRel03(self, sc_id, date, **kwargs)
+        USE:     This class plots the MagEIS rel03 data. 
+        INPUT:   REQUIRED:
+                    sc_id: Either 'A' or 'B' (case doesnt matter).abs
+                    date: A datetime object for title purposes.
+                 OPTIONAL:
+                    fluxKey = 'FEDU': Electron flux key to plot.
+        AUTHOR:  Mykhaylo Shumko
+        RETURNS: None
+        MOD:     2017-11-11
+        """
         # Get basic key parameters
         self.fluxKey = kwargs.get('fluxKey', 'FEDU')
         # Calculate the energy channel values for the day.
         self._calcDailyElectronEnergies() 
         return None
 
-    def plotSpinAvgFlux(self, ax=None, **kwargs):
+    def plotEpinAvgSpectra(self, ax=None, **kwargs):
         """
-        NAME:    plotSpinAvgFlux(self, ax = None, **kwargs)
-        USE:     Plots the spin averaged electron flux from magEIS in line format.
+        NAME:    plotEpinAvgSpectra(self, ax=None, **kwargs)
+        USE:     Plots the spin averaged electron flux spectra from magEIS.
         INPUT:   REQUIRED:
                     None
                  OPTIONAL:
                     ax = None: A subplot object. If none specied, it will 
                         create one.
                     yscale = 'log': y scale of the plot.
-                    ymin = 1: lower flux bound.
-                    pltLegendLoc = 1: If False, will not plot legend, otherwise 
-                        will plot in the location given by pltLegendLoc as 
-                        documented in matplotlib.pylab.
-                    pltXlabel = True: Plot or not the x label
-                    pltTitle = True: Plot or not the title.
+                    pltLabel = True: Plot labels and titles
+                    pltColorbar = True: Plot flux colorbar
+                    maxValidE = 21: Maximum valid energy channel
+                    cax = None: Colorbar axis
         AUTHOR:  Mykhaylo Shumko
         RETURNS: Subplot object, self.ax
-        MOD:     2017-07-06
+        MOD:     2017-11-11
         """
         yscale = kwargs.get('yscale', 'log')
-        ymin = kwargs.get('ymin', 1)
-        pltLegendLoc = kwargs.get('pltLegendLoc', 1)
-        pltXlabel = kwargs.get('pltXlabel', True)
-        pltTitle = kwargs.get('pltTitle', True)
+        pltLabel = kwargs.get('pltXlabel', True)
+        pltColorbar = kwargs.get('pltColorbar', True)
+        maxValidE = kwargs.get('maxValidE', 21) # Max valid energy channel
+        cax = kwargs.get('cax', None)
 
         if ax is None:
             fig = plt.figure(figsize=(15, 10), dpi=80, facecolor = 'white')
@@ -326,29 +336,31 @@ class PlotRel03:
             self.ax = fig.add_subplot(gs[0, 0], facecolor='w')
         else:
             self.ax = ax
-        c = ['r', 'b', 'g', 'c', 'm', 'k']
+    
+        # Calculate the mean flux as a function of time and energy
+        self.magEISdata[self.fluxKey][self.magEISdata[self.fluxKey] == -1e31] = np.nan
+        if 'FESA' not in self.magEISdata.keys(): # Create spin-avraged flux if there is none.
+            self.magEISdata['FESA'] = np.nanmean(self.magEISdata['FEDU'], axis=1)
 
-        # If the energy channel is errorous, skip it.
-        nE = np.where(~np.isnan(self.magEISdata['eEnergy']))[0]
-        c = iter(cm.rainbow(np.linspace(0, 1, len(nE))))
-        # Plot the sping-averaged electron flux (FESA)
-        for E in nE:
-            # Find the non-error flux values
-            validInd = np.where(self.magEISdata['FESA'][:, E] != -1E31)
-            self.ax.plot(self.magEISdata['Epoch'][validInd[0]], 
-                self.magEISdata['FESA'][validInd[0], E], c = next(c), 
-                label = '{} keV'.format(int(self.magEISdata['eEnergy'][E])))
+        # Plot spectra
+        wTT, wEE = np.meshgrid(range(len(self.magEISdata['Epoch'])),
+            self.magEISdata['eEnergy'][:maxValidE])
+        # Fill wTT with datetimes instead of indicies
+        wTT = np.broadcast_to(self.magEISdata['Epoch'], wEE.shape)
+        cs = self.ax.pcolormesh(wTT, wEE, self.magEISdata['FESA'].T[:maxValidE, :], 
+            cmap = plt.get_cmap('gnuplot2'), norm=colors.LogNorm(),
+            vmin=np.nanmin(self.magEISdata['FESA'].T[:maxValidE, :]), 
+            vmax=np.nanmax(self.magEISdata['FESA'].T[:maxValidE, :]))
         
-        if pltLegendLoc:
-            self.ax.legend(loc = pltLegendLoc)
+        # Beautify and label plot
         self.ax.set_yscale(yscale)
-        self.ax.set_ylim(bottom = ymin)
-        self.ax.set_ylabel(r'Electron flux $(cm^2 \ sr \ s \ keV)^{-1}$')
-        if pltTitle:
-            self.ax.set_title('RBSP{} magEIS from {} '.format
-                (self.sc_id.upper(), self.date.date().isoformat()))
-        if pltXlabel:
-            self.ax.set_xlabel('UTC')
+        if pltLabel:
+            self.ax.set(xlabel='UTC', ylabel='Energy (keV)', 
+                title='MagEIS-{} energy spectra {}'.format(
+                self.sc_id.upper(), self.date.date()))
+        if pltColorbar:
+            plt.colorbar(cs, label=r'Electron flux $(cm^2 \ sr \ s \ keV)^{-1}$', 
+                ax=self.ax, cax=cax, ticks=matplotlib.ticker.LogLocator())
         if ax is None:
             plt.show()
         return self.ax
@@ -646,7 +658,8 @@ if __name__ == '__main__':
     # Test rel03 data plotting
     dtype = 'rel03'
     rel03Obj = PlotMageis(rb_id, date, dtype, tRange=tRange)
-    rel03Obj.plotUnidirectionalFlux(90)
+    #rel03Obj.plotUnidirectionalFlux(90)
+    rel03Obj.plotEpinAvgSpectra()
     # # Test highrate data plotting
     # instrument = 'LOW'
     # dtype = 'highrate'
