@@ -7,6 +7,7 @@ import matplotlib.dates as mdates
 import os, sys
 import itertools
 
+#import netcdf
 from netCDF4 import Dataset
 
 try:

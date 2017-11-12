@@ -241,13 +241,6 @@ class EMFISISspectra:
         wTT = np.broadcast_to(self.spec['Epoch'][:], 
             (len(self.spec[freq][0, :]), len(self.spec['Epoch'][:]) ))
 
-        # Set up x and y axis ticks for imshow keyword extent. Have to 
-        # convert datetimes.
-        ticks = [matplotlib.dates.date2num(self.spec['Epoch'][0]), 
-                matplotlib.dates.date2num(self.spec['Epoch'][-1]),
-                np.array(self.spec[freq])[0, 0], 
-                np.array(self.spec[freq])[0, -1]]
-        #self.ax.set_yscale('log')
         cs = self.ax.pcolormesh(wTT, wFF, np.transpose(self.spec['Spectra']),
              cmap = plt.get_cmap('gnuplot2'), norm=colors.LogNorm(),
              vmin = vmin, vmax = vmax)
@@ -319,9 +312,9 @@ class EMFISISspectra:
         return
 
 if __name__ == '__main__':
-    date = datetime(2017, 7, 29)
-    #tBounds = [datetime(2017, 3, 31, 11, 10), datetime(2017, 3, 31, 11, 20)]
-    tBounds = [datetime(2017, 7, 29, 15), datetime(2017, 7, 29, 15, 30)]
+    date = datetime(2017, 3, 31)
+    tBounds = [datetime(2017, 3, 31, 11, 10), datetime(2017, 3, 31, 11, 20)]
+    #tBounds = [datetime(2017, 7, 29, 15), datetime(2017, 7, 29, 15, 30)]
     sc_id = 'A'
 
     pObj = EMFISISspectra(sc_id, date, tBounds = tBounds)
