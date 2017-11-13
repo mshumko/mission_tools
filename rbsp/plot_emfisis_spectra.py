@@ -269,8 +269,8 @@ class EMFISISspectra:
         
         ### Set all sorts of plot parameters ###
         self.ax.set_ylim(top = highF, bottom = lowF)
-            
-        self.ax.legend(loc = legendLoc, bbox_to_anchor = None, fontsize = 10)
+        if legendLoc:    
+            self.ax.legend(loc=legendLoc, bbox_to_anchor=None,             fontsize=10)
         if printTitle: 
             if instrument == 'WFR':
                 self.ax.set_title('RBSP{} EMFISIS {} B field spectra '.format
@@ -294,13 +294,15 @@ class EMFISISspectra:
             # Move label to left to get out of the way of other plots.
             self.cb.ax.xaxis.set_label_coords(cbX[0], cbX[1], transform =
                 self.ax.transAxes)
+            self.cb.set_label(r'$nT^2/Hz$')
+            self.cb.set_clim(vmin, vmax)
 
         elif plotCb in ['vertical', 'v']:
-            self.cb = plt.colorbar(cs, ticks = matplotlib.ticker.LogLocator(), 
-                ax = self.ax, orientation='vertical', cax = cax)
-
-        self.cb.set_label(r'$nT^2/Hz$')
-        self.cb.set_clim(vmin, vmax)
+            self.cb = plt.colorbar(cs, ax=self.ax,
+                orientation='vertical', cax=xax,
+                ticks=matplotlib.ticker.LogLocator())
+            self.cb.set_label(r'$nT^2/Hz$')
+            self.cb.set_clim(vmin, vmax)
 
         # Plot the grid
         if grid:

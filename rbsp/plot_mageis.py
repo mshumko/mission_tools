@@ -200,7 +200,7 @@ class PlotHighrate:
         # Label and beautify the plot.
         self.bx.set(yscale='log')
         if chLegend: # Add legend
-            self.bx.legend()
+            self.fluxLegend = self.bx.legend()
         if pltLabels: # Add plot labels
             if pltFlux:
                 fluxLabel = r'Electron flux $(cm^2 \ sr \ s \ keV)^{-1}$'
@@ -443,7 +443,7 @@ class PlotRel03:
                     int(self.magEISdata['eEnergy'][e]), 
                     int(self.magEISdata['FEDU_Alpha'][a])) )
         if pltLegendLoc:
-            self.ax.legend(loc = pltLegendLoc)    
+            self.fluxLegend = self.ax.legend(loc = pltLegendLoc)    
         if pltXlabel:
             self.ax.set_xlabel('UTC')
         self.ax.set_ylabel(r'Electron flux $(cm^2 \ sr \ s \ keV)^{-1}$')  
@@ -614,6 +614,7 @@ class PlotMageis(PlotHighrate, PlotRel03):
         self.magEphem['Loss_Cone_Alpha_s'] = self.magEphem['Loss_Cone'
             '_Alpha_s'][magInd]
         self.magEphem['BoverBeq'] = self.magEphem['BoverBeq'][magInd]
+        self.magEphem['EDMAG_MLAT'] = self.magEphem['EDMAG_MLAT'][magInd]
         return
 
     def _getDetectorParams(self):

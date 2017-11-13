@@ -43,6 +43,8 @@ class make_ephem:
                 self._getTleEpochBounds()
         return
 
+    def propagateOrbit(self)
+
     def _getTleEpochBounds(self):
         # Convert the TLE table epoch from string to datetime objects
         self.startTimes = np.array(list(map(
