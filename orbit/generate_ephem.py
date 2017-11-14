@@ -177,18 +177,18 @@ class SGP4_ephemeris:
 
 if __name__ == '__main__':
     start_time = time.time()
-    sc_id = 3
-    
+    sc_id = 4
+
     if sc_id == 3:
-        line1 = ('1 40377U 15003B   17311.52700010 +.00003743 +00000-0 +15915-3 0  9999')
-        line2 = ('2 40377 099.1117 164.1297 0132938 247.0426 111.6729 15.16219917152717')
+        line1 = ('1 40377U 15003B   17316.87243881 +.00003378 +00000-0 +14390-3 0  9990')
+        line2 = ('2 40377 099.1116 170.5446 0132965 229.1728 129.7910 15.16264918153522')
     elif sc_id == 4:
-        line1 = ('1 40378U 15003C   17312.17745147  .00004501  00000-0  19013-3 0  9998')
-        line2 = ('2 40378  99.1120 164.9570 0133134 244.7723 113.9655 15.16241997152825')
+        line1 = ('1 40378U 15003C   17317.12687510  .00003231  00000-0  13770-3 0  9990')
+        line2 = ('2 40378  99.1117 170.8967 0133183 228.2288 130.7496 15.16281094153579')
               
-    days = 30
-    times = [datetime(2017, 11, 8, 0, 0, 0) + timedelta(
-    minutes = i) for i in range(1440*days)]
+    days = 40
+    times = [datetime(2017, 11, 13, 0, 0, 0) + timedelta(
+    minutes=i) for i in range(1440*days)]
     
 #    times = [datetime(2017, 11, 8, 0, 0, 0) + timedelta(
 #    seconds = i) for i in range(86401)]
@@ -203,7 +203,7 @@ if __name__ == '__main__':
         'FU' + str(sc_id) + '_SGP4_LLA_' + 
         times[0].date().isoformat() + '_to_' + 
         times[-1].date().isoformat() + 
-        '_gen_w_2017-11-08_TLE.txt')
+        '_gen_w_2017-11-13_TLE.txt')
     else:
         print('Some values failed to propegate!')
     print("Ephemeris execution time %s seconds" % (time.time() - start_time))
