@@ -139,8 +139,8 @@ class make_ephem:
 if __name__ == '__main__':
     # Propagate ephemeris
     startTime = datetime.now()
-    sc_id = 'fu3'
-    tRange = [datetime(2016, 5, 19), datetime(2016, 7, 1)]
+    sc_id = 'FU4'
+    tRange = [datetime(2017, 6, 28), datetime(2017, 7, 31)]
     dT = 60
     ephem = make_ephem(sc_id, tRange, dT)
     ephem.loadTleTable()
