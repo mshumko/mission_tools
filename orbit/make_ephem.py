@@ -3,6 +3,7 @@
 from datetime import datetime, timedelta
 import numpy as np
 import dateutil.parser
+import csv
 
 import matplotlib.pyplot as plt # REMOVE WHEN DONE TESTING
 import os # REMOVE WHEN DONE TESTING
@@ -22,10 +23,6 @@ class make_ephem:
         self.sc_id = sc_id
         self.tBounds = tBounds
         self.dt = dt
-        # Make the time array
-        #ds = (tRange[1] - tRange[0]).total_seconds()
-        #self.ephemTime = np.array([tRange[0] + timedelta(seconds=s*dt) 
-        #    for s in range(int(ds/dt))])
         return
 
     def loadTleTable(self, tlePath=None):
@@ -48,28 +45,50 @@ class make_ephem:
         return
 
     def propagateOrbit(self):
+        """
 
+        """
         # Create time array and empty position arrays
         self._dataSkeletons() 
         # Loop over valid TLE's and generate ephemeris
-        for i in range(self.startIdx, self.endIdx):
+        for i in range(self.startIdx, self.endIdx+1):
             # Load TLE
             sat = twoline2rv(self.tleData[i, 1], 
                 self.tleData[i, 2], wgs72)
             # Find time indicies to loop over
             idt = np.where((self.times >= self.startTimes[i])
                  & (self.times <= self.endTimes[i]))[0]
+
             for t in idt: # Loop over times.
                 x, _ = sat.propagate(self.times[t].year, 
                     self.times[t].month, self.times[t].day,
                     self.times[t].hour, self.times[t].minute,
                     self.times[t].second)
-                self._checkError(sat) # Check if propagation is valid
+                self._checkError(sat) # Check if propagation was sucessfull
                 XGDZ = eci2gdz(x, self.times[t]) # ECI -> DGZ transform
                 self.lat[t] = XGDZ['Lat']
                 self.lon[t] = XGDZ['Lon']
                 self.alt[t] = XGDZ['Alt']
+
+        # Now filter the data to user times.
+        validIdt = np.where((self.times >= self.tBounds[0]) & 
+            (self.times <= self.tBounds[1]))[0]
+        self.times = self.times[validIdt]
+        self.lon = self.lon[validIdt]
+        self.lat = self.lat[validIdt]
+        self.alt = self.alt[validIdt]
         return
+
+    def saveEphem(self, fPath=None):
+        # Save the ephemeris to csv file.
+        if fPath is None:
+            fPath = '{}_{}_{}_LLA_ephemeris.txt'.format(self.sc_id.upper(),
+                self.tBounds[0].date(), self.tBounds[1].date())
+        with open(fPath, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(['Time (ISO), Lat (deg), Lon (deg), Alt (km)']) # Header
+            for row in zip(self.times, self.lat, self.lon, self.alt):
+                writer.writerow(row)
 
     def _getTleEpochBounds(self):
         """
@@ -126,44 +145,45 @@ if __name__ == '__main__':
     ephem = make_ephem(sc_id, tRange, dT)
     ephem.loadTleTable()
     ephem.propagateOrbit()
+    ephem.saveEphem()
     print('Run time: {}'.format(datetime.now() - startTime))
 
-    # Load existing ephemeris
-    fDir = '/home/mike/research/firebird/Datafiles/FU_{}/ephem'.format(
-        sc_id[-1])
-    fname = 'FU3_LLA_camp08_2016-05-19_2016-07-01.csv'
-    N = int((datetime(2016, 7, 1) - datetime(2016, 5, 19)).total_seconds()/60)+1
-    import csv
-    stkAlt = np.ones(N, dtype=float)
-    stkLat = np.ones(N, dtype=float)
-    stkLon = np.ones(N, dtype=float)
-    stkTime = np.ones(N, dtype=object)
+    # # Load existing ephemeris
+    # fDir = '/home/mike/research/firebird/Datafiles/FU_{}/ephem'.format(
+    #     sc_id[-1])
+    # fname = 'FU3_LLA_camp08_2016-05-19_2016-07-01.csv'
+    # N = int((datetime(2016, 7, 1) - datetime(2016, 5, 19)).total_seconds()/60)+1
+    # import csv
+    # stkAlt = np.ones(N, dtype=float)
+    # stkLat = np.ones(N, dtype=float)
+    # stkLon = np.ones(N, dtype=float)
+    # stkTime = np.ones(N, dtype=object)
 
-    with open(os.path.join(fDir, fname)) as f:
-        reader = csv.DictReader(f, 
-            fieldnames=['Time', 'Lat', 'Lon', 'Alt'])
-        reader.__next__()
-        for idx, line in enumerate(reader):
-            stkTime[idx] = dateutil.parser.parse(line['Time'])
-            stkAlt[idx] = line['Alt']
-            stkLat[idx] = line['Lat']
-            stkLon[idx] = line['Lon']
+    # with open(os.path.join(fDir, fname)) as f:
+    #     reader = csv.DictReader(f, 
+    #         fieldnames=['Time', 'Lat', 'Lon', 'Alt'])
+    #     reader.__next__()
+    #     for idx, line in enumerate(reader):
+    #         stkTime[idx] = dateutil.parser.parse(line['Time'])
+    #         stkAlt[idx] = line['Alt']
+    #         stkLat[idx] = line['Lat']
+    #         stkLon[idx] = line['Lon']
 
-    # ### PLOT VALIDATION ###
-    fig, ax = plt.subplots(3, sharex=True)
+    # # ### PLOT VALIDATION ###
+    # fig, ax = plt.subplots(3, sharex=True)
 
-    ax[0].plot(stkTime, stkAlt, label='STK alt')
-    ax[1].plot(stkTime, stkLat, label='STK lat')
-    ax[2].plot(stkTime, stkLon, label='STK lon')
+    # ax[0].plot(stkTime, stkAlt, label='STK alt')
+    # ax[1].plot(stkTime, stkLat, label='STK lat')
+    # ax[2].plot(stkTime, stkLon, label='STK lon')
 
-    ax[0].plot(ephem.times, ephem.alt, label='Mikes Alt')
-    ax[1].plot(ephem.times, ephem.lat, label='Mikes Lat')
-    ax[2].plot(ephem.times, ephem.lon, label='Mikes Lon')
+    # ax[0].plot(ephem.times, ephem.alt, label='Mikes Alt')
+    # ax[1].plot(ephem.times, ephem.lat, label='Mikes Lat')
+    # ax[2].plot(ephem.times, ephem.lon, label='Mikes Lon')
 
-    ax[0].set_ylabel('Alt (km)')
-    ax[0].set_title('STK vs Mikes make_ephem validation')
-    ax[1].set_ylabel('Lat')
-    ax[2].set_ylabel('Lon')
-    ax[0].legend()
-    plt.show()
+    # ax[0].set_ylabel('Alt (km)')
+    # ax[0].set_title('STK vs Mikes make_ephem validation')
+    # ax[1].set_ylabel('Lat')
+    # ax[2].set_ylabel('Lon')
+    # ax[0].legend()
+    # plt.show()
     
