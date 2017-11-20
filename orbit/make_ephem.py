@@ -140,7 +140,7 @@ class Make_ephem:
         MOD:     2017-11-15
         """
         if fPath is None:
-            fPath = '{}_{}_{}_LLA_ephemeris.txt'.format(self.sc_id.upper(),
+            fPath = '{}_{}_{}_LLA_ephemeris.csv'.format(self.sc_id.upper(),
                 self.tBounds[0].date(), self.tBounds[1].date())
         with open(fPath, 'w', newline='') as f:
             writer = csv.writer(f)
@@ -176,11 +176,16 @@ class Make_ephem:
         This function creates empty arrays of correct size for propagation.
         """
         startTime = self.startTimes[self.startIdx].replace(second=0,
-            minute=self.startTimes[self.startIdx].minute+1, 
+            minute=(self.startTimes[self.startIdx].minute+1)%60, 
             microsecond=0)
-        endTime = self.endTimes[self.endIdx].replace(second=0,
-            minute=self.endTimes[self.endIdx].minute+1,
-            microsecond=0)
+        if self.tBounds[1] > self.startTimes[-1]:
+            # If the user wanted an end time after the epoch of last TLE. (This avoids propagating to year 9999)
+            endTime = self.tBounds[1]
+        else:
+            endTime = self.endTimes[self.endIdx].replace(second=0,
+                minute=(self.endTimes[self.endIdx].minute+1)%60,
+                microsecond=0)
+        
         totSteps = int((endTime - startTime).total_seconds()/self.dt)
         self.times = np.array([startTime + timedelta(seconds=self.dt*i)
             for i in range(totSteps)])
@@ -319,5 +324,12 @@ def read_tle(tleFPath, sc_id):
         raise NameError('Spacecraft {} not found in {}.'.format(sc_id.upper(), tleFPath))
 
 if __name__ == '__main__':
-    obj = Make_TLE_table('fu3')
-    obj.createTable()
+    sc_id = 'FU4'
+    tableObj = Make_TLE_table(sc_id)
+    tableObj.createTable()
+    tBounds = [datetime(2017, 11, 17), datetime(2017, 12, 17)]
+    dT = 60
+    ephemObj = Make_ephem(sc_id, tBounds, dT)
+    ephemObj.loadTleTable()
+    ephemObj.propagateOrbit()
+    ephemObj.saveEphem()
