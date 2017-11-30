@@ -101,10 +101,16 @@ class PlotHighrate:
                 if ((dTspin > self.est_spin*(1+self.spin_thresh)) & 
                     (dTspin < self.est_spin*(1-self.spin_thresh)) ):
                     dTspin = self.est_spin
-                #print(self.sc_id, self.n_sectors)
                 self.times[i, :self.n_sectors] = np.array([self.times[i, iAlpha] + 
                     timedelta(seconds = iAlpha*dTspin/self.n_sectors) for iAlpha in 
                     range(self.n_sectors)])
+            # If time range is too narrow (self.magEISdata[self.alphaKey].shape[0] == 1)
+            # dTspin will not be defined and program will crash. So set to self.est_spin.
+            if self.magEISdata[self.alphaKey].shape[0] == 1:
+                dTspin = self.est_spin
+                print('Warning: time range is smaller than spin period, so '
+                    'I am estimating it!')
+            
             # This just interpolates the last spin assuming the previous spin
             self.times[-1, :self.n_sectors] = np.array([self.times[-1, iAlpha] + 
                     timedelta(seconds = iAlpha*dTspin/self.n_sectors) for iAlpha in 
