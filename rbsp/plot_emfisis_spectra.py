@@ -299,7 +299,7 @@ class EMFISISspectra:
 
         elif plotCb in ['vertical', 'v']:
             self.cb = plt.colorbar(cs, ax=self.ax,
-                orientation='vertical', cax=xax,
+                orientation='vertical', cax=cax,
                 ticks=matplotlib.ticker.LogLocator())
             self.cb.set_label(r'$nT^2/Hz$')
             self.cb.set_clim(vmin, vmax)
@@ -314,8 +314,8 @@ class EMFISISspectra:
         return
 
 if __name__ == '__main__':
-    date = datetime(2017, 3, 31)
-    tBounds = [datetime(2017, 3, 31, 11, 10), datetime(2017, 3, 31, 11, 20)]
+    date = datetime(2013, 8, 27)
+    tBounds = [datetime(2013, 8, 27, 19, 47), datetime(2013, 8, 27, 19, 50)]
     #tBounds = [datetime(2017, 7, 29, 15), datetime(2017, 7, 29, 15, 30)]
     sc_id = 'A'
 
@@ -325,6 +325,6 @@ if __name__ == '__main__':
     
     #pObj.plotSpectra(plotCb = 'vertical', instrument = 'HFR')
     pObj.plotSpectra(plotCb = 'vertical', spectraMin = 10**-10, 
-        spectraMax=10**-4)
+        spectraMax=10**-7)
         
     #cLevels = np.power(10, -np.arange(9, 7, -0.1))

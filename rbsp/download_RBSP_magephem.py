@@ -55,16 +55,20 @@ def saveRBSPMagEphem(sc_id, date, fPath, fName = None, **kwargs):
     return
 
 if __name__ == '__main__':
-    #date = datetime(2017,3,10)
-    sc_id = ['A','B']
+    date = datetime(2013,8,27)
+    sc = 'a'
 
-    startDate = datetime(2017, 7, 1)
-    endDate =  datetime(2017, 8, 1)
-    delta = endDate - startDate
-    
-    for sc in sc_id:
-        for i in range(delta.days + 1):
-            date = startDate + timedelta(days=i)
-            print(date)
-            saveRBSPMagEphem(sc, date, '/home/mike/research/rbsp/magephem/'
+    saveRBSPMagEphem(sc, date, '/home/mike/research/rbsp/magephem/'
                 'rbsp{}'.format(sc.lower()))
+
+
+    # startDate = datetime(2017, 7, 1)
+    # endDate =  datetime(2017, 8, 1)
+    # delta = endDate - startDate
+    
+    # for sc in ['A', 'B']:
+    #     for i in range(delta.days + 1):
+    #         date = startDate + timedelta(days=i)
+    #         print(date)
+    #         saveRBSPMagEphem(sc, date, '/home/mike/research/rbsp/magephem/'
+    #             'rbsp{}'.format(sc.lower()))
