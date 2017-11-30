@@ -324,12 +324,12 @@ def read_tle(tleFPath, sc_id):
         raise NameError('Spacecraft {} not found in {}.'.format(sc_id.upper(), tleFPath))
 
 if __name__ == '__main__':
-    sc_id = 'FU4'
-    tableObj = Make_TLE_table(sc_id)
-    tableObj.createTable()
-    tBounds = [datetime(2017, 11, 17), datetime(2017, 12, 17)]
-    dT = 60
-    ephemObj = Make_ephem(sc_id, tBounds, dT)
-    ephemObj.loadTleTable()
-    ephemObj.propagateOrbit()
-    ephemObj.saveEphem()
+    for sc_id in ['FU3', 'FU4']:
+        tableObj = Make_TLE_table(sc_id)
+        tableObj.createTable()
+        tBounds = [datetime(2017, 12, 1), datetime(2017, 12, 2)]
+        dT = 1
+        ephemObj = Make_ephem(sc_id, tBounds, dT)
+        ephemObj.loadTleTable()
+        ephemObj.propagateOrbit()
+        ephemObj.saveEphem()
