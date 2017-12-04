@@ -221,10 +221,12 @@ class plot_rbspice:
             self.ax = ax
             
         for tel in range(len(telescopes)): 
-            if basicScatter:           
+            if basicScatter:          
                 p = self.ax.scatter(self.rbspicedata['Epoch'], 
                     self.rbspicedata['Alpha'][:, tel], 
-                    c=flux[:, tel], norm=colors.LogNorm(), vmin=cmin, vmax=cmax)
+                    c=flux[:, tel], norm=colors.LogNorm(), 
+                    cmap=plt.get_cmap('rainbow'),
+                    vmin=cmin, vmax=cmax)
             else:
                 axx, p = self.plotPitchAngles(self.ax,
                     self.rbspicedata['Epoch'], 

@@ -44,9 +44,9 @@ def findFilename(rb_id, joinDate, data):
     return mo.group()
     
 if __name__ == '__main__':
-    rb_id = 'b'
+    rb_id = 'a'
     #dates = [datetime(2017, 7, 1) + timedelta(days=d) for d in range(30)]
-    dates = datetime(2017, 3, 31)
+    dates = datetime(2016, 8, 21)
     fPath = '/home/mike/research/rbsp/data/mageis/rbsp{}'.format(rb_id)
     downloadMagEIS(rb_id, dates, fPath, dataLevel=3)
     
