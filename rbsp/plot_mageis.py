@@ -447,12 +447,15 @@ class PlotRel03:
                     self.magEISdata[self.fluxKey][:, a, e],
                     label = r'E = {} keV, $\alpha$ = {}'.format(
                     int(self.magEISdata['eEnergy'][e]), 
-                    int(self.magEISdata['FEDU_Alpha'][a])) )
+                    int(self.magEISdata['{}_Alpha'.format(self.fluxKey)][a])) )
         if pltLegendLoc:
             self.fluxLegend = self.ax.legend(loc = pltLegendLoc)    
         if pltXlabel:
             self.ax.set_xlabel('UTC')
-        self.ax.set_ylabel(r'Electron flux $(cm^2 \ sr \ s \ keV)^{-1}$')  
+        if self.fluxKey == 'FEDU':
+            self.ax.set_ylabel(r'Electron flux $(cm^2 \ sr \ s \ keV)^{-1}$')  
+        elif self.fluxKey == 'FPDU':
+            self.ax.set_ylabel(r'Proton flux $(cm^2 \ sr \ s \ keV)^{-1}$')  
         self.ax.set_yscale(yscale)   
         
         if ax is None:
@@ -471,7 +474,7 @@ class PlotRel03:
         MOD:     2017-07-06
         """
         # Copy the FEDU_Alpha array and insert nan's for error values of -1E31.
-        FEDU_Alpha = np.array(self.magEISdata['FEDU_Alpha'])
+        FEDU_Alpha = np.array(self.magEISdata['{}_Alpha'.format(self.fluxKey)])
         FEDU_Alpha[FEDU_Alpha == -1E31] = np.nan
         
         if isinstance(alpha, int): # If alpha is an int
@@ -530,18 +533,18 @@ class PlotRel03:
         ' to calculate the electron energies is not "mean", "median", or "mode".')
 
         # Find error values and replace with nan
-        validInd = np.where(self.magEISdata['FEDU_Energy'] == -1E31)
-        self.magEISdata['FEDU_Energy'][validInd] = np.nan
+        validInd = np.where(self.magEISdata['{}_Energy'.format(self.fluxKey)] == -1E31)
+        self.magEISdata['{}_Energy'.format(self.fluxKey)][validInd] = np.nan
     
         if method is 'mean':
-            self.magEISdata['eEnergy'] = np.nanmean(self.magEISdata['FEDU_Energy'], 
+            self.magEISdata['eEnergy'] = np.nanmean(self.magEISdata['{}_Energy'.format(self.fluxKey)], 
                 axis = 0)
         elif method is 'median':
-            raise ValueError('Still not implemented!')
-            self.magEISdata['eEnergy'] = np.nanmedian(self.magEISdata['FEDU_Energy'])
+            raise ValueError('Not implemented!')
+            self.magEISdata['eEnergy'] = np.nanmedian(self.magEISdata['{}_Energy'.format(self.fluxKey)])
         elif method is 'mode':
             self.magEISdata['eEnergy'] = scipy.stats.mode(
-                self.magEISdata['FEDU_Energy'], axis = 0, nan_policy = 'omit')[0][0]
+                self.magEISdata['{}_Energy'.format(self.fluxKey)], axis=0, nan_policy='omit')[0][0]
         return self.magEISdata['eEnergy']
 
 class PlotMageis(PlotHighrate, PlotRel03):
