@@ -177,9 +177,13 @@ class Make_ephem:
         """
         This function creates empty arrays of correct size for propagation.
         """
-        startTime = self.startTimes[self.startIdx].replace(second=0,
-            minute=(self.startTimes[self.startIdx].minute+1)%60, 
-            microsecond=0)
+        # Figure out when to start time.
+        if self.tBounds[0] > self.startTimes[0]:
+            startTime = self.tBounds[0]
+        else:
+            startTime = self.startTimes[self.startIdx].replace(second=0,
+                minute=(self.startTimes[self.startIdx].minute+1)%60, 
+                microsecond=0)
         if self.tBounds[1] > self.startTimes[-1]:
             # If the user wanted an end time after the epoch of last TLE. (This avoids propagating to year 9999)
             endTime = self.tBounds[1]
@@ -327,7 +331,7 @@ def read_tle(tleFPath, sc_id):
         raise NameError('Spacecraft {} not found in {}.'.format(sc_id.upper(), tleFPath))
 
 if __name__ == '__main__':
-    for sc_id in ['FU3', 'FU4']:
+    for sc_id in ['FU4']:
         tableObj = Make_TLE_table(sc_id)
         tableObj.createTable()
         tBounds = [datetime(2015, 3, 28), datetime.now()]
