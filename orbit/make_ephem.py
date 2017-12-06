@@ -104,7 +104,7 @@ class Make_ephem:
                  & (self.times <= self.endTimes[i]))[0]
 
             for t in idt: # Loop over times.
-                x, _ = sat.propagate(self.times[t].year, 
+                x, v = sat.propagate(self.times[t].year, 
                     self.times[t].month, self.times[t].day,
                     self.times[t].hour, self.times[t].minute,
                     self.times[t].second)
@@ -113,7 +113,7 @@ class Make_ephem:
                 self.lat[t] = XGDZ['Lat']
                 self.lon[t] = XGDZ['Lon']
                 self.alt[t] = XGDZ['Alt']
-
+                self.v[t] = np.linalg.norm(v) # Save magntiude of velocity
         # Now filter the data to user times.
         validIdt = np.where((self.times >= self.tBounds[0]) & 
             (self.times <= self.tBounds[1]))[0]
@@ -121,6 +121,7 @@ class Make_ephem:
         self.lon = self.lon[validIdt]
         self.lat = self.lat[validIdt]
         self.alt = self.alt[validIdt]
+        self.v = self.v[validIdt]
         return
 
     def saveEphem(self, fPath=None):
@@ -144,8 +145,9 @@ class Make_ephem:
                 self.tBounds[0].date(), self.tBounds[1].date())
         with open(fPath, 'w', newline='') as f:
             writer = csv.writer(f)
-            writer.writerow(['Time (ISO), Lat (deg), Lon (deg), Alt (km)']) # Header
-            for row in zip(self.times, self.lat, self.lon, self.alt):
+            writer.writerow(['Time (ISO), Lat (deg), Lon (deg), '
+                'Alt (km), Vel (km/s)']) # Header
+            for row in zip(self.times, self.lat, self.lon, self.alt, self.v):
                 writer.writerow(row)
 
     def _getTleEpochBounds(self):
@@ -166,7 +168,7 @@ class Make_ephem:
             (self.tBounds[0] < self.endTimes))[0]
         self.endIdx = np.where((self.tBounds[1] > self.startTimes) & 
             (self.tBounds[1] < self.endTimes))[0]
-        assert len(self.startIdx) > 0 and len(self.endIdx), 'No TLEs found for the times specified!'
+        assert len(self.startIdx) and len(self.endIdx), 'No TLEs found for the times specified!'
         self.startIdx = self.startIdx[0]
         self.endIdx = self.endIdx[0]
         return
@@ -193,6 +195,7 @@ class Make_ephem:
         self.lat = np.nan*np.ones(totSteps, dtype=float)
         self.lon = np.nan*np.ones(totSteps, dtype=float)
         self.alt = np.nan*np.ones(totSteps, dtype=float)
+        self.v = np.nan*np.ones(totSteps, dtype=float)
         return
 
     def _checkError(self, satellite):
@@ -327,8 +330,8 @@ if __name__ == '__main__':
     for sc_id in ['FU3', 'FU4']:
         tableObj = Make_TLE_table(sc_id)
         tableObj.createTable()
-        tBounds = [datetime(2017, 12, 1), datetime(2017, 12, 2)]
-        dT = 1
+        tBounds = [datetime(2015, 3, 28), datetime.now()]
+        dT = 300
         ephemObj = Make_ephem(sc_id, tBounds, dT)
         ephemObj.loadTleTable()
         ephemObj.propagateOrbit()
