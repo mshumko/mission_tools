@@ -141,7 +141,7 @@ class Make_ephem:
         MOD:     2017-11-15
         """
         if fPath is None:
-            fPath = '{}_{}_{}_LLA_ephemeris.csv'.format(self.sc_id.upper(),
+            fPath = './data/{}_{}_{}_LLA_ephemeris.csv'.format(self.sc_id.upper(),
                 self.tBounds[0].date(), self.tBounds[1].date())
         with open(fPath, 'w', newline='') as f:
             writer = csv.writer(f)
@@ -331,11 +331,11 @@ def read_tle(tleFPath, sc_id):
         raise NameError('Spacecraft {} not found in {}.'.format(sc_id.upper(), tleFPath))
 
 if __name__ == '__main__':
-    for sc_id in ['FU4']:
+    for sc_id in ['FU3', 'FU4']:
         tableObj = Make_TLE_table(sc_id)
         tableObj.createTable()
-        tBounds = [datetime(2015, 3, 28), datetime.now()]
-        dT = 300
+        tBounds = [datetime(2017, 11, 18), datetime(2017, 12, 14)]
+        dT = 60
         ephemObj = Make_ephem(sc_id, tBounds, dT)
         ephemObj.loadTleTable()
         ephemObj.propagateOrbit()

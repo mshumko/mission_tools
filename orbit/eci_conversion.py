@@ -47,8 +47,6 @@ def eci2gdz(X, dateTime, **kwargs):
         while deg > 180:
             deg -= 360
         out['Lon'] = deg
-                             
-        #out['Lon'] = (deg % 180)
     else:
         # Code to calculate the subpoint for the oblate spheroid shape
         pass
