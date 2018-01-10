@@ -2,6 +2,9 @@ import numpy as np
 import dateutil.parser
 import multiprocessing
 from datetime import datetime
+import itertools
+
+import csv
 
 # Libs for testing
 import glob, os, sys
@@ -16,78 +19,40 @@ except SystemError:
     print('Could not import the directories.py file, '
         'please supply data directories manualy!')
 
-#ac6path = directories.ac6_dir
-
-def read_ac_data(filePath, dType = None, verbose = False):
+def read_ac_data(filePath, dType=None, verbose=False):
     """
     This function reads in AC6 data products in CSV formatted files. If dType is not
     specified, it will try to find it automatically.
     """
-    # Checks to catch improper function use.
-    # If not specified, scan the filename for a dType.
     if dType is None:
-        baseName, extention = os.path.splitext(filePath)
-        baseNameSplit = filePath.split('_')
-        dType = baseNameSplit[4]
-        assert extention in ['.csv', '.txt'], 'Error, not a typical file exention!'
-    assert dType in ['coords', 'survey', 'att', 'atts', '10Hz'],  'Specify a valid dType! ({})'.format(dType)
+        availTypes = ['10Hz', 'survey', 'coords', 'att']
+        for s in availTypes:
+            if s in os.path.basename(filePath):
+                dType = s
+    assert dType is not None, 'Could not identify correct data type!'
     
-    # Use the correct list of keys for each type of data.
-    if dType == 'coords':
-        dataKeys = ['alt', 'lat', 'lon', 'dos1rate', 'dos2rate', 'dos3rate',
-            'flag', 'Lm_IGRF', 'Bmag_IGRF', 'MLT_IGRF', 'InvLat_IGRF', 'Lm_OPQ',
-            'Bmag_OPQ', 'MLT_OPQ', 'InvLat_OPQ', 'Loss_Cone_Type', 'Bx_GEO',
-            'By_GEO', 'Bz_GEO', 'Beq', 'I', 'K', 'K_Z', 'Lstar', 'Lstar_Z', 'hmin', 'hmin_Z', 
-            'Loss_Cone_Near', 'Loss_Cone_Far', 'B100N', 'LAT100N', 'LON100N', 
-            'B100S', 'LAT100S', 'LON100S']
-    elif dType == 'survey':
-       dataKeys = ['alt', 'lat', 'lon', 'X_GEO', 'Y_GEO', 'Z_GEO', 'dos1l', 'dos1m', 
-            'dos1rate', 'dos2l', 'dos2m', 'dos2rate', 'dos3l', 'dos3m', 'dos3rate', 'flag', 
-            'Sample_Rate', 'Lm_OPQ', 'Bmag_OPQ', 'MLT_OPQ', 'InvLat_OPQ', 
-            'Loss_Cone_Type', 'Lstar', 'hmin', 'Alpha', 'Alpha_Eq', 'Beta', 'Phi_B',
-            'Dist_In_Track', 'Lag_In_Track', 'Dist_Cross_Track_Horiz', 
-            'Dist_Cross_Track_Vert', 'Dist_Total'] 
-    elif (dType == 'att') or (dType == 'atts'):
-        dataKeys = ['alt', 'lat', 'lon', 'dos1rate', 'dos2rate', 'dos3rate', 'flag', ' Alpha',
-            'Alpha_X', 'Alpha_Y', 'Alpha_Eq', 'Beta', 'Beta_X', 'Beta_Y', ' Phi_B', 
-            'OmegaX_GEO', 'OmegaY_GEO', 'OmegaZ_GEO', 'B_Spin', 'Spin_Sun']
-    elif dType == '10Hz': # Burst mode
-        dataKeys = ['alt', 'lat', 'lon', 'dos1l', 'dos1m', 'dos1rate', 'dos2l', 'dos2m',
-            'dos2rate', 'dos3l', 'dos3m', 'dos3rate', 'flag', 'Subcom', 'Lm_OPQ', 
-            'Bmag_OPQ', 'MLT_OPQ', 'InvLat_OPQ', 'Loss_Cone_Type', 'K_Z', 'Lstar_Z',
-            'hmin_Z', 'Alpha', 'Beta', 'Dist_In_Track', 'Lag_In_Track', 
-            'Dist_Cross_Track_Horiz', 'Dist_Cross_Track_Vert', 'Dist_Total']
-        pass
-    if verbose: print('Reading in data of type: {}'.format(dType))
-    # Read in the raw data
-    rawData = np.genfromtxt(filePath, delimiter = ',', skip_header = 1)
-    assert len(rawData.shape) == 2, 'Error, the data is not 2D (Empty file?)'
-    #for i in rawData:
-    #    print(i[:6])
-    # Format time, last term is to format the fractional second to microseconds
-    dateTime = np.array([datetime(int(i[0]), int(i[1]), int(i[2]), int(i[3]), 
-        int(i[4]), int(i[5]), int((i[5] - int(i[5]))*1e6)) for i in rawData])
+    with open(filePath, 'r') as f:
+        reader = csv.reader(f)
+        keys = next(reader)
+        rawData = np.array(list(reader))
 
-#    dateTime = np.array([])
-#    for i in rawData:
-#        #print(i[:6])
-#        try:
-#            dateTime = np.append(dateTime, datetime(int(i[0]), int(i[1]), 
-#            int(i[2]), int(i[3]), int(i[4]), int(i[5]), int((i[5] - int(i[5]))*1e6)))
-#        except ValueError:
-#            print(i[:6])
-#            raise
-        
-    # Populate the rest of the arrays
-    if verbose: print('Populating dictionary with data keys.')
     data = {}
-    data['dateTime'] = dateTime
-    dOffset = 6 # Data offset because the date/time is stored in sperate columns
-    for i in range(len(dataKeys)):
-        data[dataKeys[i]] = rawData[:, i + dOffset]
+    for col, key in enumerate(keys):
+        data[key] = rawData[:, col].astype(float)
+
+    # Convert decimal part of seconds to microseconds.
+    data['musec'] = np.array(list(map(
+        lambda x: int(1E6*(x - int(x))), 
+        data['second'])))
+    # Prepare input for starmap
+    inputTuple = zip(data['year'].astype(int), data['month'].astype(int), 
+        data['day'].astype(int), data['hour'].astype(int), data['minute'].astype(int), 
+        data['second'].astype(int), data['musec']) 
+    # get a dateTime array
+    data['dateTime'] = np.array(list(itertools.starmap(datetime, inputTuple)))
     return data
 
-def read_ac_data_wrapper(sc_id, date, dType = '10Hz', tRange = None, plot = False):
+def read_ac_data_wrapper(sc_id, date, dType='10Hz', tRange=None, plot=False):
     """
     This is a plotting wrapper for AC6 data. This plots the dos1 and dos2 rates
     in the top panel, lat/lon in the middle, and OPQ MLT, L shell, and particle
@@ -162,12 +127,12 @@ def read_ac_data_wrapper(sc_id, date, dType = '10Hz', tRange = None, plot = Fals
         plt.show()
     return data
 
-
 if __name__ == '__main__':
+    import time
+    startTime = time.time()
     sc_id = 'A'
-    date = datetime(2017, 1, 19)
+    date = datetime(2017, 3, 31)
     #tRange = [datetime(2016, 8, 30, 22, 47), datetime(2016, 8, 30, 22, 50)]
     data = read_ac_data_wrapper(sc_id, date, dType = '10Hz', tRange = None, 
-        plot = True)
-    #for i in data['dateTime']:
-    #    print(i)
+        plot=True)
+    print('Run time {}'.format(time.time() - startTime))
