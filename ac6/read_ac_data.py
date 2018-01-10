@@ -35,6 +35,7 @@ def read_ac_data(filePath, dType=None, verbose=False):
         reader = csv.reader(f)
         keys = next(reader)
         rawData = np.array(list(reader))
+        assert rawData.shape[0] > 1, 'File is empty!'
 
     data = {}
     for col, key in enumerate(keys):

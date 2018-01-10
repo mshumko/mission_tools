@@ -59,23 +59,23 @@ def saveEMFISISSpectra(sc_id, date, fPath, fName = None, **kwargs):
     return
 
 if __name__ == '__main__':
-    date = datetime(2013,8,27)
-    sc_id = 'A'
-    dataUrl = findEMFISISSpectraUrl(sc_id, date)
-    saveEMFISISSpectra(sc_id, date, '/home/mike/research/rbsp/data/emfisis/'
-        'rbsp{}'.format(sc_id.lower()) )
+    # date = datetime(2013,8,27)
+    # sc_id = 'A'
+    # dataUrl = findEMFISISSpectraUrl(sc_id, date)
+    # saveEMFISISSpectra(sc_id, date, '/home/mike/research/rbsp/data/emfisis/'
+    #     'rbsp{}'.format(sc_id.lower()) )
     
-    # startDate = datetime(2017, 7, 1)
-    # endDate =  datetime(2017, 8, 1)
-    # delta = endDate - startDate
-    # for sc_id in ['A', 'B']:
-    #     for i in range(delta.days + 1):
-    #         date = startDate + timedelta(days=i)
-    #         print(date)
-    #         try:
-    #             saveEMFISISSpectra(sc_id, date, '/home/mike/research/rbsp/'
-    #             'data/emfisis/rbsp{}'.format(sc_id.lower()), 
-    #                 spectraType = 'spectral-matrix-diagonal')
-    #         except urllib.error.HTTPError as err:
-    #             print(str(err))
-    #             continue
+    startDate = datetime(2017, 11, 18)
+    endDate =  datetime(2017, 12, 14)
+    delta = endDate - startDate
+    for sc_id in ['A', 'B']:
+        for i in range(delta.days + 1):
+            date = startDate + timedelta(days=i)
+            print(date)
+            try:
+                saveEMFISISSpectra(sc_id, date, '/home/mike/research/rbsp/'
+                'data/emfisis/rbsp{}'.format(sc_id.lower()), 
+                    spectraType = 'spectral-matrix-diagonal')
+            except urllib.error.HTTPError as err:
+                print(str(err))
+                continue

@@ -2,6 +2,7 @@
 import urllib.request, os
 from datetime import datetime
 from datetime import timedelta
+import itertools
 import re
 
 def downloadMagEIS(rb_id, dates, fPath, dataLevel=2):
@@ -44,10 +45,12 @@ def findFilename(rb_id, joinDate, data):
     return mo.group()
     
 if __name__ == '__main__':
-    rb_id = 'a'
-    #dates = [datetime(2017, 7, 1) + timedelta(days=d) for d in range(30)]
-    dates = datetime(2016, 8, 21)
-    fPath = '/home/mike/research/rbsp/data/mageis/rbsp{}'.format(rb_id)
-    downloadMagEIS(rb_id, dates, fPath, dataLevel=3)
+    START_DATE = datetime(2017, 11, 18)
+    END_DATE = datetime(2017, 12, 14)
+    dates = [START_DATE + timedelta(days=d) for d in 
+        range((END_DATE - START_DATE).days)]
+    for (rb_id, day) in itertools.product(['a', 'b'], dates):
+        fPath = '/home/mike/research/rbsp/data/mageis/rbsp{}'.format(rb_id)
+        downloadMagEIS(rb_id, dates, fPath, dataLevel=3)
     
 
