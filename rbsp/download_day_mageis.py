@@ -45,11 +45,12 @@ def findFilename(rb_id, joinDate, data):
     return mo.group()
     
 if __name__ == '__main__':
-    START_DATE = datetime(2017, 11, 18)
+    START_DATE = datetime(2017, 11, 17)
     END_DATE = datetime(2017, 12, 14)
     dates = [START_DATE + timedelta(days=d) for d in 
         range((END_DATE - START_DATE).days)]
-    for (rb_id, day) in itertools.product(['a', 'b'], dates):
+    #for (rb_id, day) in itertools.product(['a', 'b'], dates):
+    for rb_id in ['a']:
         fPath = '/home/mike/research/rbsp/data/mageis/rbsp{}'.format(rb_id)
         downloadMagEIS(rb_id, dates, fPath, dataLevel=3)
     
