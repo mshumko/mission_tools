@@ -65,8 +65,8 @@ if __name__ == '__main__':
     # saveEMFISISSpectra(sc_id, date, '/home/mike/research/rbsp/data/emfisis/'
     #     'rbsp{}'.format(sc_id.lower()) )
     
-    startDate = datetime(2017, 11, 17)
-    endDate =  datetime(2017, 11, 18)
+    startDate = datetime(2017, 11, 21)
+    endDate =  datetime(2017, 11, 21)
     delta = endDate - startDate
     for sc_id in ['A', 'B']:
         for i in range(delta.days + 1):
