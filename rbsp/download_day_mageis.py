@@ -45,8 +45,8 @@ def findFilename(rb_id, joinDate, data):
     return mo.group()
     
 if __name__ == '__main__':
-    START_DATE = datetime(2017, 11, 19)
-    END_DATE = datetime(2017, 11, 20)
+    START_DATE = datetime(2017, 11, 18)
+    END_DATE = datetime(2017, 11, 19)
     dates = [START_DATE + timedelta(days=d) for d in 
         range((END_DATE - START_DATE).days)]
     #for (rb_id, day) in itertools.product(['a', 'b'], dates):
