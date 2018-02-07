@@ -642,7 +642,7 @@ class PlotMageis(PlotHighrate, PlotRel03):
             if self.sc_id.lower() == 'b':
                 self.Emid = [32, 51, 74, 101, 132, 168, 208] # keV
                 self.Elow = [27, 43, 63, 88, 117, 152, 193] # keV
-                self.Ehigh = [39, 63, 88, 117, 150, 188, None] # keV 
+                self.Ehigh = [39, 63, 88, 117, 150, 188, 231] # keV 
                 # Units of (keV cm^2 sr)
                 self.G0dE = [4.33E-2, 5.41E-2, 5.926E-2, 6.605E-2, 6.460E-2,
                     6.23E-2, 5.96E-2]
