@@ -334,8 +334,8 @@ if __name__ == '__main__':
     for sc_id in ['FU3', 'FU4']:
         tableObj = Make_TLE_table(sc_id)
         tableObj.createTable()
-        tBounds = [datetime(2017, 11, 18), datetime(2017, 12, 14)]
-        dT = 60
+        tBounds = [datetime(2018, 3, 1), datetime(2018, 3, 2)]
+        dT = 1
         ephemObj = Make_ephem(sc_id, tBounds, dT)
         ephemObj.loadTleTable()
         ephemObj.propagateOrbit()
