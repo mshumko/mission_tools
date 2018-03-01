@@ -314,12 +314,12 @@ class EMFISISspectra:
         return
 
 if __name__ == '__main__':
-    date = datetime(2013, 8, 27)
-    tBounds = [datetime(2013, 8, 27, 19, 47), datetime(2013, 8, 27, 19, 50)]
+    date = datetime(2015, 2, 2)
+    #tBounds = [datetime(2013, 8, 27, 19, 47), datetime(2013, 8, 27, 19, 50)]
     #tBounds = [datetime(2017, 7, 29, 15), datetime(2017, 7, 29, 15, 30)]
     sc_id = 'A'
 
-    pObj = EMFISISspectra(sc_id, date, tBounds = tBounds)
+    pObj = EMFISISspectra(sc_id, date, tBounds = None)
     pObj.loadWFRSpectra()
     pObj.loadMagEphem()
     

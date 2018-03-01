@@ -55,8 +55,8 @@ def saveRBSPMagEphem(sc_id, date, fPath, fName = None, **kwargs):
     return
 
 if __name__ == '__main__':
-    date = datetime(2013,8,27)
-    sc = 'a'
+    date = datetime(2015,2,2)
+    sc = 'b'
 
     saveRBSPMagEphem(sc, date, '/home/mike/research/rbsp/magephem/'
                 'rbsp{}'.format(sc.lower()))
