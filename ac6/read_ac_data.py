@@ -95,6 +95,8 @@ def read_ac_data_wrapper(sc_id, date, dType='10Hz', tRange=None, plot=False):
 
         dosPlt.plot(data['dateTime'][dos1Valid], data['dos1rate'][dos1Valid], 
             label = 'dos1rate') # > 35 keV electron channel
+        dosPlt.plot(data['dateTime'], data['dos2rate'], 
+            label = 'dos2rate') # > 35 keV electron channel
         # On AC6A, dos3 responds to > 1 MeV electrons and > 20 MeV protons.
         # On AC6B, dos3 measures mainly > 20 MeV
         dosPlt.plot(data['dateTime'][dos3Valid], data['dos3rate'][dos3Valid],
@@ -131,9 +133,9 @@ def read_ac_data_wrapper(sc_id, date, dType='10Hz', tRange=None, plot=False):
 if __name__ == '__main__':
     import time
     startTime = time.time()
-    sc_id = 'A'
-    date = datetime(2015, 7, 23)
-    tRange = [datetime(2015, 7, 23, 5, 37, 21), datetime(2015, 7, 23, 5, 37, 50)]
-    data = read_ac_data_wrapper(sc_id, date, dType = '10Hz', tRange=tRange, 
+    sc_id = 'B'
+    date = datetime(2015, 2, 7)
+    tRange = [datetime(2015, 2, 7, 21, 50), datetime(2015, 2, 7, 21, 55)]
+    data = read_ac_data_wrapper(sc_id, date, dType = 'survey', tRange=tRange, 
         plot=True)
     print('Run time {}'.format(time.time() - startTime))
