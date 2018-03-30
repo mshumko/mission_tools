@@ -27,14 +27,11 @@ def findEMFISISSpectraUrl(sc_id, date, **kwargs):
           
     response = urllib.request.urlopen(url)
     data = response.read().decode()
-    # print(hour)
-    # print('{}-{}_emfisis-L2_{}{}'.format(detectorType, spectraType, 
-    #     ''.join(splitDate), hour))
     ind = data.find('{}-{}_emfisis-L2_{}{}'.format(detectorType, spectraType, 
         ''.join(splitDate), hour))
     lastInd = data.find('.cdf', ind)
-    dataUrl = data[ind - 68:lastInd + 4]
-    return dataUrl
+    dataUrl = data[ind - 7:lastInd + 4] # For the old website... ind - 68:lastInd + 4
+    return url + '/' + dataUrl
     
 def saveEMFISISSpectra(sc_id, date, fPath, fName = None, **kwargs):
 
@@ -48,12 +45,13 @@ def saveEMFISISSpectra(sc_id, date, fPath, fName = None, **kwargs):
         print('Created directory:', fPath)
     
     # load and save data
-    dataUrl = findEMFISISSpectraUrl(sc_id, date, spectraType = spectraType, 
-    detectorType = detectorType, hour = hour)
+    dataUrl = findEMFISISSpectraUrl(sc_id, date, spectraType=spectraType, 
+        detectorType=detectorType, hour=hour)
     #print(dataUrl.split('/'))
     # If file name not supplied, keep the old one.
     if fName is None:
         fName = dataUrl.split('/')[-1]
+    print('\n', dataUrl, '\n')
     print(fPath, fName)
     urllib.request.urlretrieve(dataUrl, os.path.join(fPath, fName))
     return
