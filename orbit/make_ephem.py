@@ -145,8 +145,8 @@ class Make_ephem:
                 self.tBounds[0].date(), self.tBounds[1].date())
         with open(fPath, 'w', newline='') as f:
             writer = csv.writer(f)
-            writer.writerow(['Time (ISO), Lat (deg), Lon (deg), '
-                'Alt (km), Vel (km/s)']) # Header
+            writer.writerow(['Time (ISO)', 'Lat (deg)', 'Lon (deg)',
+                'Alt (km)', 'Vel (km/s)']) # Header
             for row in zip(self.times, self.lat, self.lon, self.alt, self.v):
                 writer.writerow(row)
 
@@ -331,11 +331,11 @@ def read_tle(tleFPath, sc_id):
         raise NameError('Spacecraft {} not found in {}.'.format(sc_id.upper(), tleFPath))
 
 if __name__ == '__main__':
-    for sc_id in ['FU3', 'FU4']:
+    for sc_id in ['FU3']:
         tableObj = Make_TLE_table(sc_id)
         tableObj.createTable()
-        tBounds = [datetime(2018, 2, 20), datetime(2018, 3, 31)]
-        dT = 60
+        tBounds = [datetime(2018, 3, 25), datetime(2018, 3, 27)]
+        dT = 1
         ephemObj = Make_ephem(sc_id, tBounds, dT)
         ephemObj.loadTleTable()
         ephemObj.propagateOrbit()
