@@ -1,0 +1,2 @@
+# AEROCUBE_6A TLE list generated on 2018-04-05 14:39:55.802565
+# epoch, line1, line2 
