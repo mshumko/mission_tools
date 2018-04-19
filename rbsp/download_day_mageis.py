@@ -87,7 +87,7 @@ if __name__ == '__main__':
     # START_DATE = datetime(2017, 11, 18)
     # END_DATE = datetime(2017, 11, 19)
     dates = [startDate + timedelta(days=d) for d in 
-        range((endDate - startDate).days)]
+        range(1+(endDate - startDate).days)]
     #for (rb_id, day) in itertools.product(['a', 'b'], dates):
     for rb_id in args.sc_id:
         fPath = '/home/mike/research/rbsp/data/mageis/rbsp{}'.format(rb_id.lower())
