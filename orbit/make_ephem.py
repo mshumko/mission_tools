@@ -339,8 +339,8 @@ if __name__ == '__main__':
             tleDir='/home/mike/research/firebird/tle'
         tableObj = Make_TLE_table(sc_id, tleDir=tleDir)
         tableObj.createTable()
-        tBounds = [datetime(2018, 5, 4), datetime(2018, 5, 5)]
-        dT = 1
+        tBounds = [datetime(2018, 4, 19), datetime(2018, 5, 14)]
+        dT = 60
         ephemObj = Make_ephem(sc_id, tBounds, dT)
         ephemObj.loadTleTable()
         ephemObj.propagateOrbit()
