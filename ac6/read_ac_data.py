@@ -102,7 +102,7 @@ def read_ac_data_wrapper(sc_id, date, dType='10Hz', tRange=None, plot=False):
         dosPlt.plot(data['dateTime'][dos3Valid], data['dos3rate'][dos3Valid],
             label = 'dos3rate') 
         dosPlt.legend(loc = 1)
-        dosPlt.set(ylabel = 'Dose', title = os.path.basename(fPath))
+        dosPlt.set(ylabel = 'Dose', title = os.path.basename(fPath), yscale='log')
         dosPlt.axes.get_xaxis().set_visible(False)
         
         # Plot the geographic position
@@ -136,7 +136,7 @@ if __name__ == '__main__':
     import time
     startTime = time.time()
     sc_id = 'A'
-    date = datetime(2018, 4, 21)
+    date = datetime(2017, 3, 21)
     #tRange = [datetime(2018, 2, 27, 10, 30), datetime(2018, 2, 27, 10, 50)]
     data = read_ac_data_wrapper(sc_id, date, dType = 'survey', tRange=None, 
         plot=True)
