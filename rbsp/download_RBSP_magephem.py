@@ -11,6 +11,7 @@ def findRBSPMagEphemUrl(sc_id, date, **kwargs):
     url = kwargs.get('url', None)
     Bmodel = kwargs.get('Bmodel', 'T89D')
     fType = kwargs.get('fType', 'txt')
+    tType = kwargs.get('tTime', 'definitive')
     splitDate = date.date().isoformat().split('-')
 
     # Set up the regular expression to find the file.
@@ -19,7 +20,7 @@ def findRBSPMagEphemUrl(sc_id, date, **kwargs):
     
     if url is None:
         url = ('https://rbsp-ect.lanl.gov/data_pub/rbsp{}/MagEphem/'
-            'definitive/{}/'.format(sc_id.lower(), splitDate[0]))
+            '{}/{}/'.format(sc_id.lower(), tType, splitDate[0]))
         
     response = urllib.request.urlopen(url)
     data = response.read().decode()
@@ -75,6 +76,8 @@ if __name__ == '__main__':
                                     'size 6'))
     parser.add_argument('-m', '--model', default='T89D', help=('Magnetic field '
                                     'model to download the MagEphem files for.'))
+    parser.add_argument('-t', '--tType', default='definitive', help=('Download '
+                                    'either definitive or predicted ephemeris.'))
     args = parser.parse_args()
     if args.date != []:
         if len(args.date) != 3:
@@ -93,7 +96,8 @@ if __name__ == '__main__':
     for (sc_id, i) in itertools.product(args.sc_id, range(delta.days + 1)):
         d = startDate + timedelta(days=i)
         saveRBSPMagEphem(sc_id, d, '/home/mike/research/rbsp/magephem/'
-                'rbsp{}'.format(sc_id.lower()), Bmodel=args.model)
+                'rbsp{}'.format(sc_id.lower()), Bmodel=args.model, 
+                tType=args.tType)
 
 
     # date = datetime(2015,2,2)
