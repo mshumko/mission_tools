@@ -5,10 +5,10 @@ from datetime import datetime, timedelta
 import os
 import numpy as np
 
-saveDir = '/home/mike/Desktop/firebird_tles'
-sc_id = 'FIREBIRD FU4' # Shows up before first line as an identifier.
+saveDir = '/home/mike/Desktop/ac6_tles'
+sc_id = 'AEROCUBE 6A' # Shows up before first line as an identifier.
 #Path tp space-track TLE dump file
-dumpPath = '/home/mike/Desktop/fu4_tle_dump.txt' 
+dumpPath = '/home/mike/research/ac6/tle/ac6_tle_dump.txt' 
 
 with open(dumpPath) as f:
     r = csv.reader(f)
@@ -21,5 +21,5 @@ with open(dumpPath) as f:
         epoch = datetime(y, 1, 1) + timedelta(days=doy-1)
         
         # Write each TLE to file.
-        with open(os.path.join(saveDir, 'fu4_tle_{}.txt'.format(epoch.date())), 'a') as s:
+        with open(os.path.join(saveDir, 'ac6_tle_{}.txt'.format(epoch.date())), 'a') as s:
             s.write(sc_id + '\n' + l1[0] + '\n' + l2[0] + '\n')

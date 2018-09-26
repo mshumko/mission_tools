@@ -136,8 +136,8 @@ if __name__ == '__main__':
     import time
     startTime = time.time()
     sc_id = 'A'
-    date = datetime(2017, 3, 21)
+    date = datetime(2018, 8, 1)
     #tRange = [datetime(2018, 2, 27, 10, 30), datetime(2018, 2, 27, 10, 50)]
-    data = read_ac_data_wrapper(sc_id, date, dType = 'survey', tRange=None, 
+    data = read_ac_data_wrapper(sc_id, date, dType = '10Hz', tRange=None, 
         plot=True)
     print('Run time {}'.format(time.time() - startTime))
