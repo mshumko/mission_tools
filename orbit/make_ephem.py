@@ -332,7 +332,7 @@ def read_tle(tleFPath, sc_id):
         raise NameError('Spacecraft {} not found in {}.'.format(sc_id.upper(), tleFPath))
 
 if __name__ == '__main__':
-    for sc_id in ['ELFIN A']: # 'AEROCUBE 6A'
+    for sc_id in ['ELFIN A', 'FU3']:
         if 'AEROCUBE 6A' in sc_id:
             tleDir = '/home/mike/research/ac6/tle'
         elif 'ELFIN' in sc_id:
@@ -344,7 +344,7 @@ if __name__ == '__main__':
         tableObj = Make_TLE_table(sc_id, tleDir=tleDir)
         tableObj.createTable()
         tBounds = [datetime(2018, 9, 25), 
-                    datetime(2018, 10, 21)]
+                    datetime(2018, 12, 31)]
         dT = 60
         ephemObj = Make_ephem(sc_id, tBounds, dT)
         ephemObj.loadTleTable()
