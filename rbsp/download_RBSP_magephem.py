@@ -2,6 +2,8 @@ import urllib.request, os
 from datetime import datetime
 from datetime import timedelta
 import re
+#import ssl # Remove this when LANL fixes their cirtificate issue
+#context = ssl._create_unverified_context()
 #url = 'https://rbsp-ect.lanl.gov/data_pub/rbspa_bak/MagEphem/def/2016/rbspa_def_MagEphem_T89D_20160105_v1.0.0.txt
 
 def findRBSPMagEphemUrl(sc_id, date, **kwargs):
@@ -19,9 +21,9 @@ def findRBSPMagEphemUrl(sc_id, date, **kwargs):
     magEphemRegex = re.compile(reString)
     
     if url is None:
-        url = ('https://rbsp-ect.lanl.gov/data_pub/rbsp{}/MagEphem/'
+        url = ('https://rbsp-ect.newmexicoconsortium.org/data_pub/rbsp{}/MagEphem/'
             '{}/{}/'.format(sc_id.lower(), tType, splitDate[0]))
-        
+    
     response = urllib.request.urlopen(url)
     data = response.read().decode()
     # Use regular expressions to find the filename of intrest.
