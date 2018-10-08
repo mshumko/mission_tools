@@ -113,6 +113,8 @@ class plotHiResData:
         plt.tight_layout()
         plt.subplots_adjust(bottom=0.20)
         # Start interactive session
+        self.ax.format_coord = lambda x, y: '{}, {}'.format(
+            mdates.num2date(x).replace(tzinfo=None).isoformat(), round(y))
         self.ax.figure.canvas.mpl_connect('key_press_event', self._mouseTime)
         return
 

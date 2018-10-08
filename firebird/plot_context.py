@@ -138,5 +138,7 @@ def plot_map(tRange, channel='D0'):
     plt.show()
     return
 
+ax.format_coord = lambda x, y: '{}, {}'.format(
+            dates.num2date(x).replace(tzinfo=None).isoformat(), round(y))
 ax.figure.canvas.mpl_connect('key_press_event', mouseTime)
 plt.show()
