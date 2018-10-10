@@ -108,7 +108,7 @@ class plotHiResData:
         self.ax.legend(handles=labelHandles, loc='best')
 
         self.ax.xaxis.set_major_formatter(FuncFormatter(self._format_xaxis))
-        self.ax.set_xlabel('time\nL\nMLT\nlan\nlon')
+        self.ax.set_xlabel('time\nL\nMLT\nlat\nlon')
         self.ax.xaxis.set_label_coords(-0.05,-0.03)
         plt.tight_layout()
         plt.subplots_adjust(bottom=0.20)

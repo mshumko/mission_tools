@@ -72,7 +72,7 @@ def format_fn(tick_val, tick_pos):
     return Labels[idx]
 
 ax.xaxis.set_major_formatter(FuncFormatter(format_fn))
-ax.set_xlabel('date\ntime\nL\nMLT\nlan\nlon')
+ax.set_xlabel('date\ntime\nL\nMLT\nlat\nlon')
 ax.xaxis.set_label_coords(-0.1,-0.03)
 plt.tight_layout()
 plt.subplots_adjust(bottom=0.15)
