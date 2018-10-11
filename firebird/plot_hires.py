@@ -20,6 +20,7 @@ from datetime import datetime, timedelta, date
 import numpy as np
 
 plt.rcParams['savefig.directory'] = '/home/mike/Dropbox/0_firebird_research/ops/'
+plt.style.use('bmh')
 
 class plotHiResData:
     def __init__(self, sc_id, date, level=2):
@@ -125,37 +126,27 @@ class plotHiResData:
         idx = np.where((self.time > tRange[0]) & 
                     (self.time < tRange[1]))[0]
         fig = plt.figure(figsize=(12, 6))
-        # Nothern hemisphere
-        ax = plt.subplot(121, projection=ccrs.Orthographic(central_latitude=90))
+        ax = plt.subplot(111, projection=ccrs.PlateCarree())
         ax.stock_img()
-        ax.scatter(self.hires['Lon'][idx], self.hires['Lat'][idx], 
-                    c=self.hires[self.dataKey][idx, channel],
-                    transform=ccrs.Geodetic(), norm=colors.LogNorm())
-        # Southern hemisphere
-        bx = plt.subplot(122, projection=ccrs.Orthographic(central_latitude=-90))
-        bx.stock_img()
-        sc = bx.scatter(self.hires['Lon'][idx], self.hires['Lat'][idx], 
-                    c=self.hires[self.dataKey][idx, channel],
-                    transform=ccrs.Geodetic(), norm=colors.LogNorm())
-        # Mark starting point with a black star
-        if self.hires['Lat'][idx[0]] > 0:
-            ax.text(self.hires['Lon'][idx[0]], self.hires['Lat'][idx[0]], 'start',
-            horizontalalignment='right',
-            transform=ccrs.Geodetic())
-        else:
-            bx.text(self.hires['Lon'][idx[0]]-3, self.hires['Lat'][idx[0]]-3, 'start',
-            horizontalalignment='right',
-            transform=ccrs.Geodetic())
+        sc = ax.scatter(self.hires['Lon'][idx], self.hires['Lat'][idx], 
+                        c=self.hires[self.dataKey][idx, channel],
+                    transform=ccrs.PlateCarree(), norm=colors.LogNorm())
+        # Mark starting point with a red star
+        ax.text(self.hires['Lon'][idx[0]], self.hires['Lat'][idx[0]], '*',
+                ha='center', va='center', fontsize=20, color='red',
+                transform=ccrs.PlateCarree())
 
         fig.suptitle('FU{} HiRes {}\n{} to {}'.format(
-            args.sc_id, tRange[0].date(), tRange[0].replace(microsecond=0).time(), 
-            tRange[1].replace(microsecond=0).time()), fontsize=16)
+                    args.sc_id, tRange[0].date(), 
+                    tRange[0].replace(microsecond=0).time(), 
+                    tRange[1].replace(microsecond=0).time()), 
+                    fontsize=16)
         plt.tight_layout()
         # Plot colorbar
-        fig.subplots_adjust(right=0.89)
+        fig.subplots_adjust(right=0.89, top=0.9)
         cbar_ax = fig.add_axes([0.9, 0.15, 0.05, 0.7])
         fig.colorbar(sc, orientation='vertical', cax=cbar_ax,
-                label='{} [counts/bin]'.format(channel))
+                label='channel {} [counts/bin]'.format(channel+1))
         plt.show()
         return
 

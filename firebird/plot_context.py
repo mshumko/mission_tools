@@ -18,6 +18,8 @@ import glob
 import os
 import argparse
 
+plt.style.use('bmh')
+
 ### ARGPARSE COMMANDS
 parser = argparse.ArgumentParser(description=('This script plots the '
         'FIREBIRD-II Context level 2 data. No time correction is applied.'))
@@ -43,8 +45,8 @@ d['Time'] = np.array([dateutil.parser.parse(i) for i in d['Time']])
 
 ### PLOT CONTEXT ###
 fig, ax = plt.subplots(figsize=(12, 8))
-ax.plot(d['Time'], d['D0'], label='D0')
-ax.plot(d['Time'], d['D1'], label='D1')
+ax.plot(d['Time'], d['D0'], 'r', label='D0')
+ax.plot(d['Time'], d['D1'], 'b', label='D1')
 ax.legend(loc=1)
 ax.set(yscale='log', ylabel='Counts/6 s',
     title='FU{} Context'.format(args.sc_id)
@@ -97,44 +99,27 @@ def plot_map(tRange, channel='D0'):
     """
     This function plots the map of the orbit +/- 10 minutes of the click time.
     """
-    # tRange = [time - timedelta(minutes=windowWidth/2), 
-    #             time + timedelta(minutes=windowWidth/2)]
     idx = np.where((d['Time'] > tRange[0]) & 
                    (d['Time'] < tRange[1]))[0]
     fig = plt.figure(figsize=(12, 6))
-    # Nothern hemisphere
-    ax = plt.subplot(121, projection=ccrs.Orthographic(central_latitude=90))
+    ax = plt.subplot(111, projection=ccrs.PlateCarree())
     ax.stock_img()
-    ax.scatter(d['Lon'][idx], d['Lat'][idx], c=d[channel][idx],
-                transform=ccrs.Geodetic(), norm=colors.LogNorm())
-    # Southern hemisphere
-    bx = plt.subplot(122, projection=ccrs.Orthographic(central_latitude=-90))
-    bx.stock_img()
-    sc = bx.scatter(d['Lon'][idx], d['Lat'][idx], c=d[channel][idx],
-                transform=ccrs.Geodetic(), norm=colors.LogNorm())
-    # Mark starting point with a black star
-    if d['Lat'][idx[0]] > 0:
-        ax.text(d['Lon'][idx[0]], d['Lat'][idx[0]], 'start',
-         horizontalalignment='right',
-         transform=ccrs.Geodetic())
-        # ax.scatter(d['Lon'][idx[0]], d['Lat'][idx[0]], c='w', marker='*',
-        #             transform=ccrs.Geodetic())
-    else:
-        bx.text(d['Lon'][idx[0]]-3, d['Lat'][idx[0]]-3, 'start',
-         horizontalalignment='right',
-         transform=ccrs.Geodetic())
-        # bx.scatter(d['Lon'][idx[0]], d['Lat'][idx[0]], c='w', marker='*',
-        #             transform=ccrs.Geodetic())
+    sc = ax.scatter(d['Lon'][idx], d['Lat'][idx], c=d[channel][idx],
+                transform=ccrs.PlateCarree(), norm=colors.LogNorm())
+    # Mark starting point with a red star
+    ax.text(d['Lon'][idx[0]], d['Lat'][idx[0]], '*',
+            ha='center', va='center', fontsize=20, color='red',
+            transform=ccrs.PlateCarree())
 
     fig.suptitle('FU{} context {}\n{} to {}'.format(
         args.sc_id, tRange[0].date(), tRange[0].replace(microsecond=0).time(), 
         tRange[1].replace(microsecond=0).time()), fontsize=16)
     plt.tight_layout()
     # Plot colorbar
-    fig.subplots_adjust(right=0.89)
+    fig.subplots_adjust(right=0.89, top=0.9)
     cbar_ax = fig.add_axes([0.9, 0.15, 0.05, 0.7])
     fig.colorbar(sc, orientation='vertical', cax=cbar_ax,
-            label='{} [counts/6s]'.format(channel))
+            label='{} [counts / 6s]'.format(channel))
     plt.show()
     return
 
