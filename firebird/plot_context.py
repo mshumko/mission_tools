@@ -115,7 +115,7 @@ def plot_map(tRange, channel='D0'):
                     '/misc/irbem_l_l.npy')
     levels = np.arange(2, 10, 2)
     CS = plt.contour(lons, lats, L, levels=levels, colors='k')
-    plt.clabel(CS, inline=1, fontsize=10)
+    plt.clabel(CS, inline=1, fontsize=10, fmt='%d')
     
     # Mark starting point with a red star
     ax.text(d['Lon'][idx[0]], d['Lat'][idx[0]], '*',

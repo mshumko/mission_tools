@@ -141,7 +141,7 @@ class plotHiResData:
                         '/misc/irbem_l_l.npy')
         levels = np.arange(2, 10, 2)
         CS = plt.contour(lons, lats, L, levels=levels, colors='k')
-        plt.clabel(CS, inline=1, fontsize=10)
+        plt.clabel(CS, inline=1, fontsize=10, fmt='%d')
 
         # Mark starting point with a red star
         ax.text(self.hires['Lon'][idx[0]], self.hires['Lat'][idx[0]], '*',
