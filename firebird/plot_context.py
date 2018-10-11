@@ -106,6 +106,17 @@ def plot_map(tRange, channel='D0'):
     ax.stock_img()
     sc = ax.scatter(d['Lon'][idx], d['Lat'][idx], c=d[channel][idx],
                 transform=ccrs.PlateCarree(), norm=colors.LogNorm())
+    # load and plot L shell data
+    lons = np.load('/home/mike/research/mission-tools'
+                    '/misc/irbem_l_lons.npy')
+    lats = np.load('/home/mike/research/mission-tools'
+                    '/misc/irbem_l_lats.npy')
+    L = np.load('/home/mike/research/mission-tools'
+                    '/misc/irbem_l_l.npy')
+    levels = np.arange(2, 10, 2)
+    CS = plt.contour(lons, lats, L, levels=levels, colors='k')
+    plt.clabel(CS, inline=1, fontsize=10)
+    
     # Mark starting point with a red star
     ax.text(d['Lon'][idx[0]], d['Lat'][idx[0]], '*',
             ha='center', va='center', fontsize=20, color='red',
@@ -116,7 +127,7 @@ def plot_map(tRange, channel='D0'):
         tRange[1].replace(microsecond=0).time()), fontsize=16)
     plt.tight_layout()
     # Plot colorbar
-    fig.subplots_adjust(right=0.89, top=0.9)
+    fig.subplots_adjust(right=0.89, top=0.9, bottom=0.05)
     cbar_ax = fig.add_axes([0.9, 0.15, 0.05, 0.7])
     fig.colorbar(sc, orientation='vertical', cax=cbar_ax,
             label='{} [counts / 6s]'.format(channel))

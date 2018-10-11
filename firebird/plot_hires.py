@@ -131,6 +131,18 @@ class plotHiResData:
         sc = ax.scatter(self.hires['Lon'][idx], self.hires['Lat'][idx], 
                         c=self.hires[self.dataKey][idx, channel],
                     transform=ccrs.PlateCarree(), norm=colors.LogNorm())
+
+        # load and plot L shell data
+        lons = np.load('/home/mike/research/mission-tools'
+                        '/misc/irbem_l_lons.npy')
+        lats = np.load('/home/mike/research/mission-tools'
+                        '/misc/irbem_l_lats.npy')
+        L = np.load('/home/mike/research/mission-tools'
+                        '/misc/irbem_l_l.npy')
+        levels = np.arange(2, 10, 2)
+        CS = plt.contour(lons, lats, L, levels=levels, colors='k')
+        plt.clabel(CS, inline=1, fontsize=10)
+
         # Mark starting point with a red star
         ax.text(self.hires['Lon'][idx[0]], self.hires['Lat'][idx[0]], '*',
                 ha='center', va='center', fontsize=20, color='red',
@@ -143,7 +155,7 @@ class plotHiResData:
                     fontsize=16)
         plt.tight_layout()
         # Plot colorbar
-        fig.subplots_adjust(right=0.89, top=0.9)
+        fig.subplots_adjust(right=0.89, top=0.9, bottom=0.05)
         cbar_ax = fig.add_axes([0.9, 0.15, 0.05, 0.7])
         fig.colorbar(sc, orientation='vertical', cax=cbar_ax,
                 label='channel {} [counts/bin]'.format(channel+1))
