@@ -344,7 +344,7 @@ if __name__ == '__main__':
         tableObj = Make_TLE_table(sc_id, tleDir=tleDir)
         tableObj.createTable()
         tBounds = [datetime(2018, 9, 17), 
-                    datetime(2018, 10, 25)]
+                    datetime(2018, 10, 14)]
         dT = 60
         ephemObj = Make_ephem(sc_id, tBounds, dT)
         ephemObj.loadTleTable()
