@@ -6,14 +6,17 @@ import os
 import numpy as np
 
 #saveDir = '/home/mike/Desktop/ac6_tles'
-#sc_id = 'AEROCUBE 6A' # Shows up before first line as an identifier.
+#header = 'AEROCUBE 6A' # Shows up before first line as an identifier.
 #Path tp space-track TLE dump file
 #dumpPath = '/home/mike/research/ac6/tle/ac6_tle_dump.txt' 
 
-saveDir = '/home/mike/research/elfin/tles'
-sc_id = 'ELFIN B' # Shows up before first line as an identifier.
-#Path tp space-track TLE dump file
-dumpPath = '/home/mike/research/elfin/tles/elfin_b_tle_dump.txt' 
+saveDir = '/home/mike/research/elfin/tle'
+header = 'ELFIN B' # Shows up before first line as an identifier.
+
+#Path to space-track TLE dump file
+fname = 'elfinb'
+dumpPath = '/home/mike/research/elfin/tle/{}_tle_dump.txt'.format(fname)
+
 
 with open(dumpPath) as f:
     r = csv.reader(f)
@@ -26,5 +29,6 @@ with open(dumpPath) as f:
         epoch = datetime(y, 1, 1) + timedelta(days=doy-1)
         
         # Write each TLE to file.
-        with open(os.path.join(saveDir, 'elfinb_tle_{}.txt'.format(epoch.date())), 'a') as s:
-            s.write(sc_id + '\n' + l1[0] + '\n' + l2[0] + '\n')
+        with open(os.path.join(saveDir, '{}_tle_{}.txt'.format(fname, 
+                    epoch.date())), 'a') as s:
+            s.write(header + '\n' + l1[0] + '\n' + l2[0] + '\n')
