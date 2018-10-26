@@ -107,11 +107,11 @@ def plot_map(tRange, channel='D0'):
     sc = ax.scatter(d['Lon'][idx], d['Lat'][idx], c=d[channel][idx],
                 transform=ccrs.PlateCarree(), norm=colors.LogNorm())
     # load and plot L shell data
-    lons = np.load('/home/mike/research/mission-tools'
+    lons = np.load('/home/mike/research/mission_tools'
                     '/misc/irbem_l_lons.npy')
-    lats = np.load('/home/mike/research/mission-tools'
+    lats = np.load('/home/mike/research/mission_tools'
                     '/misc/irbem_l_lats.npy')
-    L = np.load('/home/mike/research/mission-tools'
+    L = np.load('/home/mike/research/mission_tools'
                     '/misc/irbem_l_l.npy')
     levels = np.arange(2, 10, 2)
     CS = plt.contour(lons, lats, L, levels=levels, colors='k')
@@ -127,7 +127,7 @@ def plot_map(tRange, channel='D0'):
         tRange[1].replace(microsecond=0).time()), fontsize=16)
     plt.tight_layout()
     # Plot colorbar
-    fig.subplots_adjust(right=0.89, top=0.9, bottom=0.05)
+    fig.subplots_adjust(right=0.89, top=0.9, bottom=0.1)
     cbar_ax = fig.add_axes([0.9, 0.15, 0.05, 0.7])
     fig.colorbar(sc, orientation='vertical', cax=cbar_ax,
             label='{} [counts / 6s]'.format(channel))
