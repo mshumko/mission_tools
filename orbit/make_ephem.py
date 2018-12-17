@@ -332,21 +332,51 @@ def read_tle(tleFPath, sc_id):
         raise NameError('Spacecraft {} not found in {}.'.format(sc_id.upper(), tleFPath))
 
 if __name__ == '__main__':
-    for sc_id in ['FU3', 'FU4', 'ELFIN A']:
-        if 'AEROCUBE 6A' in sc_id:
-            tleDir = '/home/mike/research/ac6/tle'
-        elif 'ELFIN' in sc_id:
-            tleDir = '/home/mike/research/elfin/tle'
-        elif 'FU' in sc_id:
-            tleDir='/home/mike/research/firebird/tle'
+    import argparse
+    
+    parser = argparse.ArgumentParser(
+                    description=('This script generates ephemeris for a '
+                                 'spacecraft given as an argument. Other '
+                                 'required arguments are start and end '
+                                 'times. Optional arguments is the cadence'
+                                 ' which is 60 s by default.'))
+    parser.add_argument('sc_id', type=str, nargs='+',
+        help=('Spacecraft to generate ephemeris for. This must correspond '
+             'to the spacecraft id in the TLE files! \n Can be one or more '
+             'spacaecraft without quotes. If spacecraft is more than one word, '
+             'put it in quotes'))
+    parser.add_argument('dates', nargs=6, type=int,
+        help=('Start and end dates for ephemeris. Must be in the following format '
+        'YYYY MM DD YYY MM DD.')) 
+    parser.add_argument('-dt', '--cadence', type=int, default=60,
+        help=('Ephemeris cadence (default is 60 s)'))
+    parser.add_argument('-tle', '--tlePath', type=str,
+        help=('Path to where TLEs are stored. If none, a lookup table in this '
+              'script will be used.'))
+    args = parser.parse_args()
+    
+    print('Generating ephemeris with the following arguments.', args)
+    # argparse is smart. It looks for all strings before the date range ints and 
+    # adds them to args.sc_id. Also if you give it one sc_id we can still 
+    # iterate over it.
+    for sc_id in args.sc_id:
+        if args.tlePath is None:
+            if 'AEROCUBE 6A' in sc_id:
+                tleDir = '/home/mike/research/ac6/tle'
+            elif 'ELFIN' in sc_id:
+                tleDir = '/home/mike/research/elfin/tle'
+            elif 'FU' in sc_id:
+                tleDir='/home/mike/research/firebird/tle'
+            elif 'CERES' in sc_id:
+                tleDir='/home/mike/research/ceres/tle'
         else:
-            tleDir='/home/mike/research/firebird/tle'
+            tleDir = args.tlePath
+            
         tableObj = Make_TLE_table(sc_id, tleDir=tleDir)
         tableObj.createTable()
-        tBounds = [datetime(2018, 12, 10), 
-                    datetime(2019, 1, 30)]
-        dT = 60
-        ephemObj = Make_ephem(sc_id, tBounds, dT)
+        tBounds = [datetime(*args.dates[:3]), 
+                    datetime(*args.dates[3:])]
+        ephemObj = Make_ephem(sc_id, tBounds, args.cadence)
         ephemObj.loadTleTable()
         ephemObj.propagateOrbit()
         ephemObj.saveEphem()
