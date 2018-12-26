@@ -2,7 +2,7 @@ import numpy as np
 import time
 import multiprocessing
 
-def obrienBaseline(data, timeWidth = 1.0, cadence = 18.75E-3, PERCENTILE_THRESH = 10):
+def obrienBaseline(data, timeWidth = 1.0, cadence = 18.75E-3, PERCENTILE_THRESH = 10, verbose=False):
     """
     NAME:    obrienBaseline(data, timeWidth = 1.0, cadence = 18.75E-3, PERCENTILE_THRESH = 10)
     USE:     Implements the baseline algorithm described by O'Brien et al. 2004, GRL. 
@@ -24,7 +24,8 @@ def obrienBaseline(data, timeWidth = 1.0, cadence = 18.75E-3, PERCENTILE_THRESH 
         i = int(i)
         dataSlice = data[i:2*dataWidth+i]
         baseline[dataWidth+i] = np.percentile(dataSlice, PERCENTILE_THRESH)
-    print("O'Brien Baseline time: {}".format(time.time() - start_time))
+    if verbose:
+        print("O'Brien Baseline time: {}".format(time.time() - start_time))
     return baseline
     
 def obrienBaselineMultiprocess(data, timeWidth, cadence, PERCENTILE_THRESH, channel, out_q):
