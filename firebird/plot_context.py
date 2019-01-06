@@ -70,8 +70,14 @@ def format_fn(tick_val, tick_pos):
     The tick magic happens here. pyplot gives it a tick time, and this function 
     returns the closest label to that time. Read docs for FuncFormatter().
     """
-    idx = np.argmin(np.abs(numTimes-tick_val))
-    return Labels[idx]
+    dt = numTimes-tick_val
+    # If time difference between matplotlib's tick and HiRes time stamp 
+    # is larger than 10 minutes, skip that tick label.
+    if np.min(np.abs(dt)) > 10/1440:
+        return ''
+    else:
+        idx = np.argmin(np.abs(dt))
+        return Labels[idx]
 
 ax.xaxis.set_major_formatter(FuncFormatter(format_fn))
 ax.set_xlabel('date\ntime\nL\nMLT\nlat\nlon')

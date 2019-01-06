@@ -220,8 +220,14 @@ class plotHiResData:
         The tick magic happens here. pyplot gives it a tick time, and this function 
         returns the closest label to that time. Read docs for FuncFormatter().
         """
-        idx = np.argmin(np.abs(self.numTimes-tick_val))
-        return self.Labels[idx]
+        dt = self.numTimes-tick_val
+        # If time difference between matplotlib's tick and HiRes time stamp 
+        # is larger than 30 minutes, skip that tick label.
+        if np.min(np.abs(dt)) > 30/1440:
+            return ''
+        else:
+            idx = np.argmin(np.abs(dt))
+            return self.Labels[idx]
         
 if __name__ == '__main__':
     ### Parse args ###
