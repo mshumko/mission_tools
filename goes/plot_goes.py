@@ -100,7 +100,7 @@ class GOES_reader:
                 self.goesData['E1W_UNCOR_FLUX'].long_label))
         if pltLabels:
             self.ax.set(xlabel='UTC', ylabel=r'Flux $(e/(cm^2 \ s \ sr)$', 
-                title='GOES{} Electron Flux from {}'.format(self.sc_id, 
+                title='GOES EPEAD Electron Flux from {}'.format( 
                     self.date.date().isoformat()))
         if pltLegend:
             self.ax.legend(loc=1)
@@ -114,21 +114,21 @@ if __name__ == '__main__':
     ax = fig.add_subplot(gs[0, 0])
     bx = ax.twinx()#fig.add_subplot(gs[1, 0], sharex=ax)
 
-    d = GOES_reader(13, datetime(2017, 3, 31), dType='epead')
+    d = GOES_reader(14, datetime(2019, 1, 25), dType='epead')
     d.read_GOES()
     #print(d.goesData.variables)
     d.calc_magLoc()
     bx.plot(d.time, d.MLT, '--', c=colorArr[0])
     d.plot_electron_flux(pltLegend=False, ax=ax)
 
-    d2 = GOES_reader(15, datetime(2017, 3, 31), dType='epead')
+    d2 = GOES_reader(15, datetime(2019, 1, 25), dType='epead')
     d2.read_GOES()
     d2.calc_magLoc()
     bx.plot(d2.time, d2.MLT, '--', c=colorArr[1])
-    bx.set(ylabel='MLT')
+    bx.set(ylabel='MLT (dashed)')
     d2.plot_electron_flux(pltLegend=False, ax=ax)
 
-    ax.legend(loc=1)
+    ax.legend()
     fig.autofmt_xdate()
     gs.tight_layout(fig)
     plt.show()
