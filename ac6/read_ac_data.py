@@ -122,7 +122,7 @@ def plot_data(data, sc_id, dtype):
 
     # Format x-axis labels
     ax.xaxis.set_major_formatter(FuncFormatter(format_fn))
-    ax.set_xlabel('time\nL\nMLT\nlat\nlon')
+    ax.set_xlabel('time\nL\nMLT\nlat\nlon\nflag')
     ax.xaxis.set_label_coords(-0.1,-0.03)
     plt.tight_layout()
     plt.subplots_adjust(bottom=0.15)
@@ -151,12 +151,13 @@ def _plotLabels(data, skip_n=5):
     L[L < 0] = ''
     time = data['dateTime']
     # This code is a nifty way to format the x-ticks to my liking.
-    labels = ['{}\n{}\n{}\n{}\n{}'.format(
+    labels = ['{}\n{}\n{}\n{}\n{}\n{}'.format(
                 t.replace(microsecond=0).time(),
-                L, round(MLT,1), round(lat,1), round(lon,1)) for 
-                (t, L, MLT, lat, lon) in zip(
+                L, round(MLT,1), round(lat,1), round(lon,1), flag) for 
+                (t, L, MLT, lat, lon, flag) in zip(
                 time[::skip_n], L[::skip_n], data['MLT_OPQ'][::skip_n], 
-                data['lat'][::skip_n], data['lon'][::skip_n])]  
+                data['lat'][::skip_n], data['lon'][::skip_n], 
+                data['flag'][::skip_n])]  
     numTimes = mdates.date2num(time[::skip_n])
     return time, numTimes, labels 
 
