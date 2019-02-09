@@ -13,6 +13,7 @@ import matplotlib.colors as colors
 import cartopy.crs as ccrs
 from matplotlib.ticker import FuncFormatter, MaxNLocator
 import dateutil.parser
+import matplotlib
 from datetime import datetime, timedelta
 import glob
 import os
@@ -45,6 +46,14 @@ d['Time'] = np.array([dateutil.parser.parse(i) for i in d['Time']])
 
 ### PLOT CONTEXT ###
 fig, ax = plt.subplots(figsize=(12, 8))
+# Tap into the magical matplotlib backend to make magic happen.
+canvas = fig.canvas 
+saveDir = '/home/mike/Dropbox/0_firebird_research/ops/camp_{}'.format(args.camp)
+matplotlib.rcParams["savefig.directory"] = saveDir
+if not os.path.exists(saveDir): 
+    os.makedirs(saveDir)
+    print('Made new directory:', saveDir)
+
 ax.plot(d['Time'], d['D0'], 'r', label='D0')
 ax.plot(d['Time'], d['D1'], 'b', label='D1')
 ax.legend(loc=1)
@@ -90,8 +99,13 @@ def mouseTime(event):
     """ 
     When a user presses 't', this function will print the spacecraft info.
     """
+    # Set default save filename
+    t = dates.num2date(ax.get_xlim()[0]).replace(tzinfo=None).replace(microsecond=0)
+    save_datetime = t.strftime('%Y%m%d_%H%M')
+    canvas.get_default_filename = lambda: '{}_FU{}_context.png'.format(save_datetime, args.sc_id)
+
     if event.key == 't':
-        time = dates.num2date(event.xdata).replace(tzinfo=None).isoformat()
+        time = t.isoformat()
         Lt = L[np.argmin(np.abs(event.xdata - dates.date2num(d['Time'])))]
         print(time, 'L =',Lt)
     elif event.key == 'm':

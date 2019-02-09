@@ -6,6 +6,7 @@ It accepts sc_id (3 or 4) and date (yyyy mm dd) arguments.
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from matplotlib.ticker import FuncFormatter
+import matplotlib
 import matplotlib.dates as mdates
 import matplotlib.lines as mlines
 import matplotlib.colors as colors
@@ -19,7 +20,6 @@ import dateutil.parser
 from datetime import datetime, timedelta, date
 import numpy as np
 
-plt.rcParams['savefig.directory'] = '/home/mike/Dropbox/0_firebird_research/ops/'
 plt.style.use('bmh')
 
 class plotHiResData:
@@ -127,6 +127,7 @@ class plotHiResData:
         idx = np.where((self.time > tRange[0]) & 
                     (self.time < tRange[1]))[0]
         fig = plt.figure(figsize=(12, 6))
+        self.mc = fig.canvas
         ax = plt.subplot(111, projection=ccrs.PlateCarree())
         ax.stock_img()
         sc = ax.scatter(self.hires['Lon'][idx], self.hires['Lat'][idx], 
@@ -160,7 +161,6 @@ class plotHiResData:
         cbar_ax = fig.add_axes([0.9, 0.15, 0.05, 0.7])
         fig.colorbar(sc, orientation='vertical', cax=cbar_ax,
                 label='channel {} [counts/bin]'.format(channel+1))
-        plt.show()
         return
 
     def get_hires(self, sc_id, date, level=2):
@@ -191,13 +191,19 @@ class plotHiResData:
         # Initialize interactive sesson
         When a user presses 't', this function will print the spacecraft info.
         """
+        t = mdates.num2date(ax.get_xlim()[0]).replace(tzinfo=None).replace(microsecond=0)
+        save_datetime = t.strftime('%Y%m%d_%H%M')
+        canvas.get_default_filename = lambda: '{}_FU{}_hires.png'.format(save_datetime, args.sc_id)
+
         if event.key == 't':
-            time = mdates.num2date(event.xdata).replace(tzinfo=None).isoformat()
+            time = t.isoformat()
             Lt = self.L[np.argmin(np.abs(event.xdata - mdates.date2num(self.time)))]
             print(time, 'L =', Lt)
         elif event.key == 'm':
             tRange = [t.replace(tzinfo=None) for t in mdates.num2date(self.ax.get_xlim())]
             self.plot_map(tRange)
+            self.mc.get_default_filename = lambda: '{}_FU{}_hires_map.png'.format(save_datetime, args.sc_id)
+            plt.show()
         return
 
     def _labels(self):
@@ -240,9 +246,15 @@ if __name__ == '__main__':
     parser.add_argument('-k', '--key', type=str, default='Col_counts',
         help=('This is the detector key (Col_counts, Col_flux, Sur_counts, and Sur_flux)'))     
     args = parser.parse_args()
+
+    # Tap into the magical matplotlib backend to make magic happen.
+    fig, ax = plt.subplots(figsize=(8, 6))
+    canvas = fig.canvas 
+    saveDir = '/home/mike/Dropbox/0_firebird_research/ops/'
+    matplotlib.rcParams["savefig.directory"] = saveDir
     
     ### Plot data
     date = date(*args.date)
     hr = plotHiResData(args.sc_id, date)   
-    hr.plotTimeSeries()
+    hr.plotTimeSeries(ax=ax)
     plt.show()
