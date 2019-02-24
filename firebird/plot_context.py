@@ -104,11 +104,15 @@ def mouseTime(event):
     save_datetime = t.strftime('%Y%m%d_%H%M')
     canvas.get_default_filename = lambda: '{}_FU{}_context.png'.format(save_datetime, args.sc_id)
 
+
     if event.key == 't':
-        time = t.isoformat()
+        time = dates.num2date(event.xdata).replace(microsecond=0).replace(tzinfo=None).isoformat()
+        #time = t.isoformat()
         Lt = L[np.argmin(np.abs(event.xdata - dates.date2num(d['Time'])))]
         print(time, 'L =',Lt)
     elif event.key == 'm':
+        #time = dates.num2date(event.xdata).replace(tzinfo=None).isoformat()
+        #t = dates.num2date(ax.get_xlim()[0]).replace(tzinfo=None).replace(microsecond=0)
         tRange = [t.replace(tzinfo=None) for t in dates.num2date(ax.get_xlim())]
         plot_map(tRange)
         #time = dates.num2date(event.xdata).replace(tzinfo=None)
