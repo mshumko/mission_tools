@@ -4,6 +4,7 @@ import multiprocessing
 from datetime import datetime
 import itertools
 import csv
+import pandas as pd
 
 # Libs for testing
 import glob, os, sys
@@ -20,7 +21,7 @@ except SystemError:
     print('Could not import the directories.py file, '
         'please supply data directories manualy!')
 
-def read_ac_data(filePath, dType=None, verbose=False):
+def read_ac_data(filePath, dType=None, verbose=False, use_pandas=True):
     """
     This function reads in AC6 data products in CSV formatted files. If dType is not
     specified, it will try to find it automatically.
@@ -31,30 +32,47 @@ def read_ac_data(filePath, dType=None, verbose=False):
             if s in os.path.basename(filePath):
                 dType = s
     assert dType is not None, 'Could not identify correct data type!'
-    
-    with open(filePath, 'r') as f:
-        reader = csv.reader(f)
-        keys = next(reader)
-        rawData = np.array(list(reader))
-        assert rawData.shape[0] > 1, 'File is empty!'
 
-    data = {}
-    for col, key in enumerate(keys):
-        data[key] = rawData[:, col].astype(float)
+    if use_pandas:
+        data = pd.read_csv(filePath, na_values='-1e+31')
+        data['dateTime'] = pd.to_datetime(
+            data[['year', 'month', 'day', 'hour', 'minute', 'second']])
 
-    # Convert decimal part of seconds to microseconds.
-    data['musec'] = np.array(list(map(
-        lambda x: int(1E6*(x - int(x))), 
-        data['second'])))
-    # Prepare input for starmap
-    inputTuple = zip(data['year'].astype(int), data['month'].astype(int), 
-        data['day'].astype(int), data['hour'].astype(int), data['minute'].astype(int), 
-        data['second'].astype(int), data['musec']) 
-    # get a dateTime array
-    data['dateTime'] = np.array(list(itertools.starmap(datetime, inputTuple)))
+        assert data.shape[0] > 1, 'File is empty!'
+    else:
+        with open(filePath, 'r') as f:
+            reader = csv.reader(f)
+            keys = next(reader)
+            rawData = np.array(list(reader))
+            assert rawData.shape[0] > 1, 'File is empty!'
+
+        data = {}
+        for col, key in enumerate(keys):
+            data[key] = rawData[:, col].astype(float)
+
+        # Convert decimal part of seconds to microseconds.
+        data['musec'] = np.array(list(map(
+            lambda x: int(1E6*(x - int(x))), 
+            data['second'])))
+        # Prepare input for starmap
+        inputTuple = zip(data['year'].astype(int), data['month'].astype(int), 
+            data['day'].astype(int), data['hour'].astype(int), data['minute'].astype(int), 
+            data['second'].astype(int), data['musec']) 
+        # get a dateTime array
+        data['dateTime'] = np.array(list(itertools.starmap(datetime, inputTuple)))
     return data
 
-def read_ac_data_wrapper(sc_id, date, dType='10Hz', tRange=None):
+
+def get_ac6_path(sc_id, date, dType):
+    path = directories.ac6_dir(sc_id)
+    splitDate = date.date().isoformat().split('-')
+    dateJoined = ''.join(splitDate)
+    files = glob.glob(os.path.join(path, 
+            'AC6-{}_{}_L2_{}_V03.csv'.format(sc_id.upper(), dateJoined, dType)))
+    assert len(files) == 1, 'None or > 1 AC6 files found in {}'.format(path)
+    return files[0]
+
+def read_ac_data_wrapper(sc_id, date, dType='10Hz', tRange=None, use_pandas=True):
     """
     This is a plotting wrapper for AC6 data. This plots the dos1 and dos2 rates
     in the top panel, lat/lon in the middle, and OPQ MLT, L shell, and particle
@@ -62,14 +80,8 @@ def read_ac_data_wrapper(sc_id, date, dType='10Hz', tRange=None):
     """
     ### Load in the data ###
     #path = '/home/ms30715/ssd_data/ac6/ac6{}/ascii/level2'.format(sc_id.lower())
-    path = directories.ac6_dir(sc_id)
-    splitDate = date.date().isoformat().split('-')
-    dateJoined = ''.join(splitDate)
-    files = glob.glob(os.path.join(path, 
-            'AC6-{}_{}_L2_{}_V03.csv'.format(sc_id.upper(), dateJoined, dType)))
-    assert len(files) == 1, 'None or > 1 AC6 files found in {}'.format(path)
-    fPath = files[0]
-    data = read_ac_data(fPath, dType = dType)
+    fPath = get_ac6_path(sc_id, date, dType)
+    data = read_ac_data(fPath, dType=dType, use_pandas=use_pandas)
 
     ### Filter all of the data by time ###
     if tRange is not None:
@@ -186,9 +198,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     date = datetime(*args.date)
-    data = read_ac_data_wrapper(args.sc_id, date, dType=args.dtype, tRange=None)
+    data = read_ac_data_wrapper(args.sc_id, date, dType=args.dtype, 
+            tRange=None)
 
     if args.plot:
         time, numTimes, labels = _plotLabels(data)
         plot_data(data, args.sc_id, args.dtype)
-   
