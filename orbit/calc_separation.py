@@ -12,8 +12,8 @@ class CalcSep:
         Convert times will convert timestamps to datetime objects (slow!)
         """
         self.convertTimes = convertTimes
-        self.dataA = self._readFile(fPathA)
-        self.dataB = self._readFile(fPathB)
+        self.dataA = self.loadEphem(fPathA)
+        self.dataB = self.loadEphem(fPathB)
         return
 
     def calcDistance(self):
@@ -58,8 +58,8 @@ class CalcSep:
             for line in zip(self.dataA['dateTime'], self.d):
                 writer.writerow(line)
 
-    def _readFile(self, fPath):
-        """ This function uses the csv module to read in the ephem file """
+    def loadEphem(self, fPath):
+        """ This method uses the csv module to read in the ephem file """
         with open(fPath, 'r') as f:
             reader = csv.reader(f)
             next(reader) # Skip header
@@ -85,14 +85,19 @@ class CalcSep:
 # Testing FU3_LLA_camp02_2015-03-20_2015-04-21.csv
 # FU4_LLA_camp01_2015-01-29_2015-02-23.csv
 if __name__ == '__main__':
-    fPathA = ('/home/mike/research/firebird/Datafiles/FU_3/ephem/'
-        'FU3_LLA_camp02_2015-03-20_2015-04-21.csv')
-    fPathB = ('/home/mike/research/firebird/Datafiles/FU_4/ephem/'
-        'FU4_LLA_camp02_2015-03-20_2015-04-21.csv')
-    savePath = 'camp01_firebird_separation.txt'
+    fPathA = ('/home/mike/research/mission_tools/orbit/data/'
+        'FU4_2015-02-01_2019-03-06_LLA_ephemeris.csv')
+    fPathB = ('/home/mike/research/mission_tools/orbit/data/'
+        'FU3_2015-02-01_2019-03-06_LLA_ephemeris.csv')
+    savePath = '20190306_firebird_separation.txt'
+    # fPathA = ('/home/mike/research/firebird/Datafiles/FU_3/ephem/'
+    #     'FU3_LLA_camp02_2015-03-20_2015-04-21.csv')
+    # fPathB = ('/home/mike/research/firebird/Datafiles/FU_4/ephem/'
+    #     'FU4_LLA_camp02_2015-03-20_2015-04-21.csv')
+    # savePath = 'camp01_firebird_separation.txt'
     dObj = CalcSep(fPathA, fPathB, convertTimes=True)
     dObj.calcDistance()
-    #dObj.saveData(savePath)
+    dObj.saveData(savePath)
 
     import matplotlib.pyplot as plt
     plt.plot(dObj.dataA['dateTime'], dObj.d)
