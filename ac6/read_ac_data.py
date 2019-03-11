@@ -5,6 +5,7 @@ from datetime import datetime
 import itertools
 import csv
 import pandas as pd
+from pandas.plotting import register_matplotlib_converters
 
 # Libs for testing
 import glob, os, sys
@@ -20,6 +21,8 @@ try:
 except SystemError:
     print('Could not import the directories.py file, '
         'please supply data directories manualy!')
+
+register_matplotlib_converters()
 
 def read_ac_data(filePath, dType=None, verbose=False, use_pandas=True):
     """
@@ -97,13 +100,6 @@ def plot_data(data, sc_id, dtype):
     """
     Plot AC6 data
     """
-    # Get plot labels. This is very bad coding practice!
-    # Too lazy to rewrite it all.
-    # label_ouput =  _plotLabels(data)
-    # global time = label_ouput[0]
-    # global numTimes = label_ouput[1]
-    # global labels = label_ouput[2]
-
     _, ax = plt.subplots(figsize=(12, 8))
 
     date = data['dateTime'][0].date()
@@ -159,15 +155,15 @@ def _plotMouseTime(event):
 def _plotLabels(data, skip_n=5):
     ### FORMAT X-AXIS to show more information ###
     data['Lm_OPQ'] = np.round(data['Lm_OPQ'], decimals=1)
-    L = np.copy(data['Lm_OPQ']).astype(object)
-    L[L < 0] = ''
+    L = pd.DataFrame(data['Lm_OPQ'])#.astype(object))
+    L = L.replace(np.nan, '', regex=True)
     time = data['dateTime']
     # This code is a nifty way to format the x-ticks to my liking.
     labels = ['{}\n{}\n{}\n{}\n{}\n{}'.format(
                 t.replace(microsecond=0).time(),
                 L, round(MLT,1), round(lat,1), round(lon,1), flag) for 
                 (t, L, MLT, lat, lon, flag) in zip(
-                time[::skip_n], L[::skip_n], data['MLT_OPQ'][::skip_n], 
+                time[::skip_n], L.loc[::skip_n, 'Lm_OPQ'], data['MLT_OPQ'][::skip_n], 
                 data['lat'][::skip_n], data['lon'][::skip_n], 
                 data['flag'][::skip_n])]  
     numTimes = mdates.date2num(time[::skip_n])
@@ -198,8 +194,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     date = datetime(*args.date)
+    import time
+    t = time.time()
     data = read_ac_data_wrapper(args.sc_id, date, dType=args.dtype, 
             tRange=None)
+    print(time.time() - t)
 
     if args.plot:
         time, numTimes, labels = _plotLabels(data)
