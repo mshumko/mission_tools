@@ -1,2 +1,0 @@
-# This is the black list of TLE's not to process for ELFIN A.
-# Insert dates for TLEs you want ignored in YYYY-MM-DD format.
