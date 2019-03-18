@@ -35,9 +35,11 @@ def geocentric_to_geodetic(geoc_lat,geoc_lon,geoc_h):
     geod_lat = math.degrees(geod_lat)
     return geod_lat, geod_lon, geod_h
 
-
-#To call it:
-#[geod_lat, geod_lon, geod_h] = geocentric_to_geodetic(geoc_lat,geoc_lon,geoc_h)   
-#geoc_lat, geoc_lon have to be entered in degrees and geoc_h in meters
-#returns geod_lat, geod_lon in degrees and geod_h in meters 
-    
+if __name__ == '__main__':
+    #To call it:
+    #[geod_lat, geod_lon, geod_h] = geocentric_to_geodetic(geoc_lat,geoc_lon,geoc_h)   
+    #geoc_lat, geoc_lon have to be entered in degrees and geoc_h in meters
+    #returns geod_lat, geod_lon in degrees and geod_h in meters 
+    import timeit
+    print(timeit.timeit(stmt='geocentric_to_geodetic(60, 0, 500000)', 
+        number=50000, setup="from __main__ import geocentric_to_geodetic"))    
