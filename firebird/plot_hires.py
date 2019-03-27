@@ -41,14 +41,14 @@ class plotHiResData:
         RETURNS: The HiRes plot of log counts vs UTC. 
         MOD:     2016-08-22
         """    
-        level = kwargs.get('level', 2)
+        #level = kwargs.get('level', 2)
         self.dataKey = kwargs.get('dataKey', 'Col_counts')
         errors = kwargs.get('errors', False)
         yscale = kwargs.get('yscale', 'log')
-        cadence = kwargs.get('cadence', 18.75E-3)
+        #cadence = kwargs.get('cadence', 18.75E-3)
         self.ax = kwargs.get('ax', None)
         G = kwargs.get('G', 9)
-        c = ['r', 'g', 'b', 'c', 'k']
+        c = ['r', 'g', 'b', 'c', 'm','k']
 
         if self.ax is None:
             f, self.ax = plt.subplots(figsize=(8, 6))
@@ -71,15 +71,16 @@ class plotHiResData:
             if 'counts' in self.dataKey.split('_'):
                 yerr = np.sqrt(self.hires['Col_counts'])                
             else:
-                yerr = [np.sqrt(self.hires['Col_counts'][:, i])/\
-                (cadence*G*self.energyWidths[i]) for i in range(5)]
+                raise NotImplemented('Flux uncertnaity not implemeted yet!')
+                # yerr = [np.sqrt(self.hires['Col_counts'][:, i])/\
+                # (cadence*G*self.energyWidths[i]) for i in range(5)]
     
         # Plot the 6 energy channels.
-        labelHandles = [None]*5 
+        labelHandles = [None]*6
     
-        for i in range(5): 
+        for i in range(6): 
             label = mlines.Line2D([], [], color=c[i], markersize=15, 
-                label=str(self.energyBins[int(i)]) + ' keV')
+                label=self.energyBins[int(i)])
             labelHandles[i] = label
         
             # Loop over the continous chunks of times
@@ -170,12 +171,12 @@ class plotHiResData:
         # Change the directory, depending where you store your data. 
         if self.hiresName[2] == '3':
             directory = '/home/mike/research/firebird/Datafiles/FU_3/hires/level' + str(level) + '/'
-            self.energyBins = [265.4, 353.7, 481.2, 662.7, 913.0, 1693]
-            self.energyWidths = [68.7, 107.9, 147.2, 215.9, 284.5, 1]
+            #self.energyBins = [265.4, 353.7, 481.2, 662.7, 913.0, 1693]
+            #self.energyWidths = [68.7, 107.9, 147.2, 215.9, 284.5, 1]
         elif self.hiresName[2] == '4':
             directory = '/home/mike/research/firebird/Datafiles/FU_4/hires/level' + str(level) + '/'
-            self.energyBins = [251.5, 333.5, 452.0, 620.5, 852.8, 1577]
-            self.energyWidths = [63.7 , 100.2 , 136.7 , 200.4 , 264.25]
+            #self.energyBins = [251.5, 333.5, 452.0, 620.5, 852.8, 1577]
+            #self.energyWidths = [63.7 , 100.2 , 136.7 , 200.4 , 264.25]
         else:
             raise LookupError('Not a valid spacecraft number!')
         
@@ -183,6 +184,7 @@ class plotHiResData:
         self.hires = dm.readJSONheadedASCII(
                     os.path.join(directory + self.hiresName))
         self.time = spt.Ticktock(self.hires["Time"]).UTC
+        self.energyBins = self.hires['Col_counts'].attrs['ELEMENT_LABELS']
         return
 
     
