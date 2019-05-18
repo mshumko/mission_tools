@@ -75,10 +75,14 @@ class plotHiResData:
                 # yerr = [np.sqrt(self.hires['Col_counts'][:, i])/\
                 # (cadence*G*self.energyWidths[i]) for i in range(5)]
     
-        # Plot the 6 energy channels.
-        labelHandles = [None]*6
-    
-        for i in range(6): 
+        # Plot the N energy channels.
+        if 'flux' in self.dataKey:
+            N = 5 # Can't get an integral channel flux.
+        else:
+            N = 6
+        labelHandles = [None]*N
+
+        for i in range(N): 
             label = mlines.Line2D([], [], color=c[i], markersize=15, 
                 label=self.energyBins[int(i)])
             labelHandles[i] = label
@@ -258,5 +262,5 @@ if __name__ == '__main__':
     ### Plot data
     date = date(*args.date)
     hr = plotHiResData(args.sc_id, date)   
-    hr.plotTimeSeries(ax=ax)
+    hr.plotTimeSeries(ax=ax, dataKey=args.key)
     plt.show()
