@@ -84,7 +84,7 @@ class plotHiResData:
 
         for i in range(N): 
             label = mlines.Line2D([], [], color=c[i], markersize=15, 
-                label=self.energyBins[int(i)])
+                label=self.energyRanges[int(i)])
             labelHandles[i] = label
         
             # Loop over the continous chunks of times
@@ -175,12 +175,8 @@ class plotHiResData:
         # Change the directory, depending where you store your data. 
         if self.hiresName[2] == '3':
             directory = '/home/mike/research/firebird/Datafiles/FU_3/hires/level' + str(level) + '/'
-            #self.energyBins = [265.4, 353.7, 481.2, 662.7, 913.0, 1693]
-            #self.energyWidths = [68.7, 107.9, 147.2, 215.9, 284.5, 1]
         elif self.hiresName[2] == '4':
             directory = '/home/mike/research/firebird/Datafiles/FU_4/hires/level' + str(level) + '/'
-            #self.energyBins = [251.5, 333.5, 452.0, 620.5, 852.8, 1577]
-            #self.energyWidths = [63.7 , 100.2 , 136.7 , 200.4 , 264.25]
         else:
             raise LookupError('Not a valid spacecraft number!')
         
@@ -188,7 +184,8 @@ class plotHiResData:
         self.hires = dm.readJSONheadedASCII(
                     os.path.join(directory + self.hiresName))
         self.time = spt.Ticktock(self.hires["Time"]).UTC
-        self.energyBins = self.hires['Col_counts'].attrs['ELEMENT_LABELS']
+        self.energyCenters = self.hires['Col_counts'].attrs['ELEMENT_LABELS']
+        self.energyRanges = self.hires['Col_counts'].attrs['ENERGY_RANGES']
         return
 
     
