@@ -49,6 +49,7 @@ class plotHiResData:
         self.ax = kwargs.get('ax', None)
         G = kwargs.get('G', 9)
         c = ['r', 'g', 'b', 'c', 'm','k']
+        cadence = 1000*float(self.hires.attrs['CADENCE'])
 
         if self.ax is None:
             f, self.ax = plt.subplots(figsize=(8, 6))
@@ -104,7 +105,7 @@ class plotHiResData:
         if self.dataKey == 'Col_flux':
             self.ax.set_ylabel(r'Collimated flux $(s \ cm^2 \ sr \ keV)^{-1}$')
         elif self.dataKey == 'Col_counts':
-            self.ax.set_ylabel(r'Collimated counts')
+            self.ax.set_ylabel(f'Collimated counts/{cadence} ms')
         elif self.dataKey == 'Sur_counts':
             self.ax.set_ylabel(r'Surface counts')
         elif self.dataKey == 'Sur_flux':
