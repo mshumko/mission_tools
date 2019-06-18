@@ -127,7 +127,8 @@ def plot_map(tRange, channel='D0'):
                    (d['Time'] < tRange[1]))[0]
     fig = plt.figure(figsize=(12, 6))
     ax = plt.subplot(111, projection=ccrs.PlateCarree())
-    ax.stock_img()
+    #ax.stock_img()
+    ax.coastlines()
     sc = ax.scatter(d['Lon'][idx], d['Lat'][idx], c=d[channel][idx],
                 transform=ccrs.PlateCarree(), norm=colors.LogNorm())
     # load and plot L shell data
