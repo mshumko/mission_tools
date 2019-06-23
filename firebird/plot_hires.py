@@ -135,8 +135,8 @@ class plotHiResData:
         fig = plt.figure(figsize=(12, 6))
         self.mc = fig.canvas
         ax = plt.subplot(111, projection=ccrs.PlateCarree())
-        ax.coastlines()
-        #ax.stock_img()
+        #ax.coastlines()
+        ax.stock_img()
         sc = ax.scatter(self.hires['Lon'][idx], self.hires['Lat'][idx], 
                         c=self.hires[self.dataKey][idx, channel],
                     transform=ccrs.PlateCarree(), norm=colors.LogNorm())
