@@ -369,6 +369,8 @@ if __name__ == '__main__':
                 tleDir='/home/mike/research/firebird/tle'
             elif 'CERES' in sc_id:
                 tleDir='/home/mike/research/ceres/tle'
+            elif 'DSX' in sc_id:
+                tleDir='/home/mike/research/dsx/tle'
         else:
             tleDir = args.tlePath
             
