@@ -361,15 +361,15 @@ if __name__ == '__main__':
     # iterate over it.
     for sc_id in args.sc_id:
         if args.tlePath is None:
-            if 'AEROCUBE 6A' in sc_id:
+            if 'AEROCUBE 6A' in sc_id.upper():
                 tleDir = '/home/mike/research/ac6/tle'
-            elif 'ELFIN' in sc_id:
+            elif 'ELFIN' in sc_id.upper():
                 tleDir = '/home/mike/research/elfin/tle'
-            elif 'FU' in sc_id:
+            elif 'FU' in sc_id.upper():
                 tleDir='/home/mike/research/firebird/tle'
-            elif 'CERES' in sc_id:
+            elif 'CERES' in sc_id.upper():
                 tleDir='/home/mike/research/ceres/tle'
-            elif 'DSX' in sc_id:
+            elif 'DSX' in sc_id.upper():
                 tleDir='/home/mike/research/dsx/tle'
         else:
             tleDir = args.tlePath
