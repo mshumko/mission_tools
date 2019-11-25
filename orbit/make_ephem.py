@@ -61,7 +61,8 @@ class Make_ephem:
         MOD:     2017-11-15
         """
         if tlePath is None:
-            tlePath = '{}_tle_table.txt'.format(self.sc_id.upper())
+            sc_name_underscore = self.sc_id.upper().replace(' ', '_')
+            tlePath = f'{sc_name_underscore}_tle_table.txt'
         # Read contents of the file
         self.tleData = np.nan*np.ones((0, 3), dtype=object)
         # Read in the file, and ignore the header.
@@ -261,7 +262,8 @@ class Make_TLE_table:
         MOD:   2017-11-15
         """
         if fname is None:
-            fname = '{}_tle_table.txt'.format(self.sc_id.upper())
+            sc_name_underscore = self.sc_id.upper().replace(' ', '_')
+            fname = f'{sc_name_underscore}_tle_table.txt'
 
         # Open file for writing the tle table
         with open(fname, 'w') as f:
@@ -294,7 +296,8 @@ class Make_TLE_table:
         Load in the TLE blacklist file...
         """
         if fname is None:
-            fname = '{}_tle_blacklist.txt'.format(self.sc_id.upper())
+            sc_name_underscore = self.sc_id.upper().replace(' ', '_')
+            fname = f'{sc_name_underscore}_tle_blacklist.txt'
 
         # If blacklist file has not been created
         if not os.path.exists(fname):
