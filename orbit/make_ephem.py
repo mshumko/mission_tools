@@ -369,7 +369,7 @@ if __name__ == '__main__':
             elif 'ELFIN' in sc_id.upper():
                 tleDir = '/home/mike/research/elfin/tle'
             elif 'FU' in sc_id.upper():
-                tleDir='/home/mike/research/firebird/tle'
+                tleDir='/home/mike/research/firebird/MSU_Side/tle'
             elif 'CERES' in sc_id.upper():
                 tleDir='/home/mike/research/ceres/tle'
             elif 'DSX' in sc_id.upper():
