@@ -6,6 +6,8 @@ import itertools
 import csv
 import pandas as pd
 from pandas.plotting import register_matplotlib_converters
+import matplotlib.colors as colors
+import cartopy.crs as ccrs
 
 # Libs for testing
 import glob, os, sys
@@ -96,86 +98,135 @@ def read_ac_data_wrapper(sc_id, date, dType='10Hz', tRange=None, use_pandas=True
             data[key] = data[key][timeInd]
     return data
 
-def plot_data(data, sc_id, dtype):
-    """
-    Plot AC6 data
-    """
-    _, ax = plt.subplots(figsize=(12, 8))
+class Plot_AC6:
+    def __init__(self, data, sc_id, dtype):
+        """
+        Plot the AC6 time series data as well as AC6's location.
+        """
+        self.data = data
+        self.time, self.numTimes, self.labels = self._plotLabels(data)
+        self.sc_id = sc_id
+        self.dtype = dtype
+        return
 
-    date = data['dateTime'][0].date()
-    idx1 = np.where(data['dos1rate'] != -1E31)[0]
-    idx2 = np.where(data['dos2rate'] != -1E31)[0]
-    idx3 = np.where(data['dos3rate'] != -1E31)[0]
+    def plot_data(self):
+        """
+        Plot AC6 data
+        """
+        _, self.ax = plt.subplots(figsize=(12, 8))
 
-    # plot dos 1-3 rate channels
-    ax.plot(data['dateTime'][idx1], data['dos1rate'][idx1], 
-        label = 'dos1rate') # > 35 keV electron channel
-    ax.plot(data['dateTime'][idx2], data['dos2rate'][idx2], 
-        label = 'dos2rate') # > 35 keV electron channel
-    # On AC6A, dos3 responds to > 1 MeV electrons and > 20 MeV protons.
-    # On AC6B, dos3 measures mainly > 20 MeV
-    ax.plot(data['dateTime'][idx3], data['dos3rate'][idx3],
-        label = 'dos3rate') 
+        date = self.time[0].date()
+        # idx1 = np.where(data['dos1rate'] != -1E31)[0]
+        # idx2 = np.where(data['dos2rate'] != -1E31)[0]
+        # idx3 = np.where(data['dos3rate'] != -1E31)[0]
 
-    # Format axes
-    ax.set_yscale('log')
-    ax.set_title('AC6-{} {} {}'.format(sc_id.upper(), dtype, date))
-    ax.set_ylabel('dos rate [counts/s]')
-    ax.legend()
+        # plot dos 1-3 rate channels
+        self.ax.plot(data['dateTime'], data['dos1rate'], 
+            label = 'dos1rate') # > 35 keV electron channel
+        self.ax.plot(data['dateTime'], data['dos2rate'], 
+            label = 'dos2rate') # > 35 keV electron channel
+        # On AC6A, dos3 responds to > 1 MeV electrons and > 20 MeV protons.
+        # On AC6B, dos3 measures mainly > 20 MeV
+        self.ax.plot(data['dateTime'], data['dos3rate'],
+            label = 'dos3rate') 
 
-    # Start interactive session
-    ax.format_coord = lambda x, y: '{}, {}'.format(
-            dates.num2date(x).replace(tzinfo=None).isoformat(), round(y))
-    ax.figure.canvas.mpl_connect('key_press_event', _plotMouseTime)
+        # Format axes
+        self.ax.set_yscale('log')
+        self.ax.set_title('AC6-{} {} {}'.format(self.sc_id.upper(), self.dtype, date))
+        self.ax.set_ylabel('dos rate [counts/s]')
+        self.ax.legend(loc=1)
 
-    # Format x-axis labels
-    ax.xaxis.set_major_formatter(FuncFormatter(format_fn))
-    ax.set_xlabel('time\nL\nMLT\nlat\nlon\nflag')
-    ax.xaxis.set_label_coords(-0.1,-0.03)
-    plt.tight_layout()
-    plt.subplots_adjust(bottom=0.15)
-    plt.show()
-    return
+        # Start interactive session
+        self.ax.format_coord = lambda x, y: '{}, {}'.format(
+                dates.num2date(x).replace(tzinfo=None).isoformat(), round(y))
+        self.ax.figure.canvas.mpl_connect('key_press_event', self._plotMouseTime)
 
-def _plotMouseTime(event):
-    """ 
-    # Initialize interactive sesson
-    When a user presses 't', this function will print the spacecraft info.
-    """
-    #print('Not implemented yet!')
-    # if event.key == 't':
-    #     time = mdates.num2date(event.xdata).replace(tzinfo=None).isoformat()
-        # Lt = self.L[np.argmin(np.abs(event.xdata - mdates.date2num(self.time)))]
-        # print(time, 'L =', Lt)
-    # elif event.key == 'm':
-    #     tRange = [t.replace(tzinfo=None) for t in mdates.num2date(ax.get_xlim())]
-    #     self.plot_map(tRange)
-    return
+        # Format x-axis labels
+        self.ax.xaxis.set_major_formatter(FuncFormatter(self.format_fn))
+        self.ax.set_xlabel('time\nL\nMLT\nlat\nlon\nflag\nLCT')
+        self.ax.xaxis.set_label_coords(-0.1,-0.02)
+        plt.tight_layout()
+        plt.subplots_adjust(bottom=0.16)
+        plt.show()
+        return
 
-def _plotLabels(data, skip_n=5):
-    ### FORMAT X-AXIS to show more information ###
-    data['Lm_OPQ'] = np.round(data['Lm_OPQ'], decimals=1)
-    L = pd.DataFrame(data['Lm_OPQ'])#.astype(object))
-    L = L.replace(np.nan, '', regex=True)
-    time = data['dateTime']
-    # This code is a nifty way to format the x-ticks to my liking.
-    labels = ['{}\n{}\n{}\n{}\n{}\n{}'.format(
-                t.replace(microsecond=0).time(),
-                L, round(MLT,1), round(lat,1), round(lon,1), flag) for 
-                (t, L, MLT, lat, lon, flag) in zip(
-                time[::skip_n], L.loc[::skip_n, 'Lm_OPQ'], data['MLT_OPQ'][::skip_n], 
-                data['lat'][::skip_n], data['lon'][::skip_n], 
-                data['flag'][::skip_n])]  
-    numTimes = mdates.date2num(time[::skip_n])
-    return time, numTimes, labels 
+    def plot_map(self, tRange, channel='dos1rate', decimate=10):
+        """
+        This function plots the map of the orbit with the same time bounds
+        as the time series.
+        """
+        data_flt = self.data[(self.data['dateTime'] > tRange[0]) & 
+                             (self.data['dateTime'] < tRange[1])]
+        # idx = np.where((self.data['dateTime'] > tRange[0]) & 
+        #             (d['dateTime'] < tRange[1]))[0]
+        fig = plt.figure(figsize=(12, 6))
+        ax = plt.subplot(111, projection=ccrs.PlateCarree())
+        ax.stock_img()
+        #ax.coastlines()
+        sc = ax.scatter(data_flt.lon[::decimate], data_flt.lat[::decimate], 
+                    c=data_flt[channel][::decimate],
+                    transform=ccrs.PlateCarree())
+        # load and plot L shell data
+        lons = np.load('/home/mike/research/mission_tools'
+                        '/misc/irbem_l_lons.npy')
+        lats = np.load('/home/mike/research/mission_tools'
+                        '/misc/irbem_l_lats.npy')
+        L = np.load('/home/mike/research/mission_tools'
+                        '/misc/irbem_l_l.npy')
+        levels = np.arange(2, 10, 2)
+        CS = plt.contour(lons, lats, L, levels=levels, colors='k')
+        plt.clabel(CS, inline=1, fontsize=10, fmt='%d')
+        
+        # Mark starting point with a red star
+        ax.text(data_flt.lon.iat[0], data_flt.lat.iat[0], '*',
+                ha='center', va='center', fontsize=20, color='red',
+                transform=ccrs.PlateCarree())
 
-def format_fn(tick_val, tick_pos):
-    """
-    The tick magic happens here. pyplot gives it a tick time, and this function 
-    returns the closest label to that time. Read docs for FuncFormatter().
-    """
-    idx = np.argmin(np.abs(numTimes-tick_val))
-    return labels[idx]
+        fig.suptitle('AC6{} ground track on {}\n{} to {}'.format(
+            self.sc_id, tRange[0].date(), tRange[0].replace(microsecond=0).time(), 
+            tRange[1].replace(microsecond=0).time()), fontsize=16)
+        plt.tight_layout()
+        # Plot colorbar
+        fig.subplots_adjust(right=0.89, top=0.9, bottom=0.1)
+        cbar_ax = fig.add_axes([0.9, 0.15, 0.05, 0.7])
+        fig.colorbar(sc, orientation='vertical', cax=cbar_ax,
+                label=channel)
+        plt.show()
+        return
+
+    def _plotMouseTime(self, event):
+        """ 
+        When a user presses 'm', a map will be plotted of the spacecraft location.
+        """
+        if event.key == 'm':
+            tRange = [t.replace(tzinfo=None) for t in mdates.num2date(self.ax.get_xlim())]
+            self.plot_map(tRange)
+        return
+
+    def _plotLabels(self, data, skip_n=5):
+        ### FORMAT X-AXIS to show more information ###
+        data['Lm_OPQ'] = np.round(data['Lm_OPQ'], decimals=1)
+        L = pd.DataFrame(data['Lm_OPQ'])#.astype(object))
+        L = L.replace(np.nan, '', regex=True)
+        time = data['dateTime']
+        # This code is a nifty way to format the x-ticks to my liking.
+        labels = ['{}\n{}\n{}\n{}\n{}\n{}\n{}'.format(
+                    t.replace(microsecond=0).time(),
+                    L, round(MLT,1), round(lat,1), round(lon,1), flag, lct) for 
+                    (t, L, MLT, lat, lon, flag, lct) in zip(
+                    time[::skip_n], L.loc[::skip_n, 'Lm_OPQ'], data['MLT_OPQ'][::skip_n], 
+                    data['lat'][::skip_n], data['lon'][::skip_n], 
+                    data['flag'][::skip_n], data['Loss_Cone_Type'][::skip_n])]  
+        numTimes = mdates.date2num(time[::skip_n])
+        return time, numTimes, labels 
+
+    def format_fn(self, tick_val, tick_pos):
+        """
+        The tick magic happens here. pyplot gives it a tick time, and this function 
+        returns the closest label to that time. Read docs for FuncFormatter().
+        """
+        idx = np.argmin(np.abs(self.numTimes-tick_val))
+        return self.labels[idx]
 
 if __name__ == '__main__':
     #### If running in interactive mode, use argparse ###
@@ -198,8 +249,7 @@ if __name__ == '__main__':
     t = time.time()
     data = read_ac_data_wrapper(args.sc_id, date, dType=args.dtype, 
             tRange=None)
-    print(time.time() - t)
 
     if args.plot:
-        time, numTimes, labels = _plotLabels(data)
-        plot_data(data, args.sc_id, args.dtype)
+        p = Plot_AC6(data, args.sc_id, args.dtype)
+        p.plot_data()
