@@ -12,7 +12,7 @@ is a werid dependence. If you use the specified version, the map features in the
 AC6 and FIREBIRD-II plotting programs will work. Newer versions of matplotlib 
 break Cartopy.
 
-# The ```firebird/''' folder contains:
+# The ```firebird/``` folder contains:
 - Download the raw data from the Europa server ```download_fb_data_raw.sh```
 - Download the processed data from the web ```download_fb_data_web.sh```
 - Download the two line elements (TLEs) ```download_fb_tle.sh```
