@@ -1,6 +1,4 @@
 import numpy as np
-import dateutil.parser
-import multiprocessing
 from datetime import datetime
 import itertools
 import csv
@@ -68,12 +66,17 @@ def read_ac_data(filePath, dType=None, verbose=False, use_pandas=True):
     return data
 
 
-def get_ac6_path(sc_id, date, dType):
+def get_ac6_path(sc_id, day, dType):
     path = directories.ac6_dir(sc_id)
-    splitDate = date.date().isoformat().split('-')
-    dateJoined = ''.join(splitDate)
+    if isinstance(day, str):
+        date_str = day
+    else:
+        date_str = datetime.strftime(day, "%Y%m%d")
+    
+    # splitDate = date.date().isoformat().split('-')
+    # dateJoined = ''.join(splitDate)
     files = glob.glob(os.path.join(path, 
-            'AC6-{}_{}_L2_{}_V03.csv'.format(sc_id.upper(), dateJoined, dType)))
+            'AC6-{}_{}_L2_{}_V03.csv'.format(sc_id.upper(), date_str, dType)))
     assert len(files) == 1, 'None or > 1 AC6 files found in {}'.format(path)
     return files[0]
 
