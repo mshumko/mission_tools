@@ -1,5 +1,5 @@
-from setuptools import setup, find_packages, find_namespace_packages
-
+from setuptools import setup
+import glob
 # To install in linux, type in terminal "sudo python3 setup.py install"
 
 # For developer install, use "sudo python3 setup.py develop" to install 
@@ -9,7 +9,7 @@ setup(
     name="mission_tools",
     version="1.0",
     # packages=find_packages(),
-    packages=find_namespace_packages(),
+    packages=find_namespace_packages(include=["ac6.*", 'firebird.*']),
     #scripts=["say_hello.py"],
 
     # Project uses reStructuredText, so ensure that the docutils get
@@ -21,6 +21,11 @@ setup(
                     "pandas >= 1.0.0",
                     "sgp4 >= 1.4",
                     "spacepy >= 0.1.6"],
+
+    package_data = {
+    'ac6': ['./ac6/*'],
+    'firebird': ['*.txt']
+    }
 
     # package_data={
     #     # If any package contains *.txt or *.rst files, include them:
