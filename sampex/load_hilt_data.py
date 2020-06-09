@@ -8,7 +8,7 @@ import numpy as np
 
 hilt_dir = '/home/mike/research/sampex/'
 
-class Load_HILT:
+class Load_SAMPEX_HILT:
     def __init__(self, load_date, zipped=True, extract=False, 
                 time_index=True):
         """
@@ -88,13 +88,41 @@ class Load_HILT:
             del(self.hilt['Time'])
         return
 
-class Load_Attitude:
+    def resolve_counts_state4(self):
+        """ 
+        This function resolves the HILT counts to 20 ms resolution assuming 
+        the data is in state4. The counts represent the sum from the 4 SSDs.
+        Data saved in self.hilt_resolved
+        """ 
+        resolution_ms = 20E-3
+        # Resolve the counts using numpy (most efficient way with 
+        # static memory allocation)
+        self.counts = np.nan*np.zeros(5*self.hilt.shape[0], dtype=int)
+        for i in [0, 1, 2, 3]:
+            self.counts[i::5] = self.hilt[f'Rate{i+1}']
+        # This line is different because rate5 is 100 ms SSD4 data.
+        self.counts[4::5] = self.hilt['Rate6'] 
+
+        # Resolve the time array.
+        self.times = np.nan*np.zeros(5*self.hilt.shape[0], dtype=object)
+        for i in [0, 1, 2, 3, 4]:
+            self.times[i::5] = self.hilt.index + pd.to_timedelta(resolution_ms*i, unit='s')
+
+        self.hilt_resolved = pd.DataFrame(data={'counts':self.counts}, index=self.times)
+        return self.counts, self.times
+
+
+class Load_SAMPEX_Attitude:
     def __init__(self, date):
 
         return
 
 if __name__ == '__main__':
-    l = Load_HILT(datetime(2000, 4, 4))
+    l = Load_SAMPEX_HILT(datetime(2000, 4, 4))
+    l.resolve_counts_state4()
+    # import matplotlib.pyplot as plt
+    # plt.plot(l.hilt.index, l.hilt.Rate5)
+    # plt.show()
 
     #### Use argparse if running in interactive mode ###
     # parser = argparse.ArgumentParser(description=('This script plots the '
