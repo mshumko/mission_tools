@@ -203,14 +203,27 @@ class Load_SAMPEX_Attitude:
         return None
 
 
+class Load_SAMPEX_HILT_ATTITUDE:
+    def __init__(self, date):
+        """
+        This is a child class of Load_SAMPEX_HILT and Load_SAMPEX_Attitude
+        that loads the SAMPEX HILT and attitude data and merges the two
+        datasets using the merge_asof pandas function.
+        """
+        raise NotImplementedError
+        return
+
 if __name__ == '__main__':
     # l = Load_SAMPEX_HILT(datetime(2000, 4, 4))
     # l.resolve_counts_state4()
     # import matplotlib.pyplot as plt
     # plt.plot(l.hilt.index, l.hilt.Rate5)
     # plt.show()
-
+    import time
+    start_time = time.time()
+    l = Load_SAMPEX_HILT(datetime(2000, 4, 4))
     a = Load_SAMPEX_Attitude(datetime(2000, 4, 4))
+    print(f'Run time = {time.time()-start_time} s')
 
     #### Use argparse if running in interactive mode ###
     # parser = argparse.ArgumentParser(description=('This script plots the '
