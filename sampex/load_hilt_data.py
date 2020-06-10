@@ -165,7 +165,7 @@ class Load_SAMPEX_Attitude:
         If remove_old_time_cols is True, the year, DOY, and second columns are 
         delited to conserve memory.
         """
-        print(f'Loading SAMPEX attitude data from {self.load_date} from'
+        print(f'Loading SAMPEX attitude data from {self.load_date.date()} from'
             f' {self.attitude_file.name}')
         # A default set of hard-coded list of columns to load
         if columns=='default':
@@ -182,15 +182,7 @@ class Load_SAMPEX_Attitude:
             # columns values for the column names.
             self.attitude = pd.read_csv(f, sep=' ', names=[columns[key] for key in columns.keys()], 
                                         usecols=columns.keys())
-        # Parse the dates by first making YYYY-DOY strings.
-        year_doy = [f'{year}-{doy}' for year, doy in 
-                    self.attitude[['Year', 'Day-of-year']].values]
-        attitude_dates=pd.to_datetime(year_doy, format='%Y-%j')
-        # Now add the seconds of day to complete the date and time.
-        self.attitude.index = attitude_dates + pd.to_timedelta(self.attitude['Sec_of_day'], unit='s')
-        # Optionally remove duplicate columns to conserve memory.
-        if remove_old_time_cols:
-            self.attitude.drop(['Year', 'Day-of-year', 'Sec_of_day'], axis=1, inplace=True)
+        self._parse_attitude_datetime(remove_old_time_cols)
         return
 
     def _skip_header(self, f):
@@ -203,6 +195,23 @@ class Load_SAMPEX_Attitude:
             if "BEGIN DATA" in line:
                 return f 
         return None
+
+    def _parse_attitude_datetime(self, remove_old_time_cols):
+        """
+        Parse the attitude year, DOY, and second of day columns 
+        into datetime objects. 
+        """
+        # Parse the dates by first making YYYY-DOY strings.
+        year_doy = [f'{year}-{doy}' for year, doy in 
+                    self.attitude[['Year', 'Day-of-year']].values]
+        # Convert to date objects
+        attitude_dates=pd.to_datetime(year_doy, format='%Y-%j')
+        # Now add the seconds of day to complete the date and time.
+        self.attitude.index = attitude_dates + pd.to_timedelta(self.attitude['Sec_of_day'], unit='s')
+        # Optionally remove duplicate columns to conserve memory.
+        if remove_old_time_cols:
+            self.attitude.drop(['Year', 'Day-of-year', 'Sec_of_day'], axis=1, inplace=True)
+        return
 
 
 class Load_SAMPEX_HILT_ATTITUDE:
