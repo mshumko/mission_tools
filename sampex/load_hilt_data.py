@@ -155,33 +155,52 @@ class Load_SAMPEX_Attitude:
                              f'{self.load_date.year}, doy={self.doy}')
         return self.attitude_file
 
-    def load_attitude(self):
+    def load_attitude(self, columns='default', remove_old_time_cols=True):
         """ 
-        Loads the attitude file and convers the long header into
-        a list of variables.
+        Loads the attitude file. Only columns specified in the columns arg are 
+        loaded to conserve memory. The year, day_of_year, and sec_of_day columns
+        are used to construct a list of datetime objects that are assigned to
+        self.attitude index. 
+
+        If remove_old_time_cols is True, the year, DOY, and second columns are 
+        delited to conserve memory.
         """
+        # A default set of hard-coded list of columns to load
+        if columns=='default':
+            columns = {
+                0:'Year', 1:'Day-of-year', 2:'Sec_of_day', 6:'GEO_Radius',
+                7:'GEO_Long', 8:'GEO_Lat', 9:'Altitude', 20:'L_Shell',
+                22:'MLT', 42:'Mirror_Alt', 68:'Pitch'
+            }
+        # Open the attitude file stream
         with open(self.attitude_file) as f:
-            header_vars = self._get_header(f)
+            # Skip the long header until the "BEGIN DATA" line 
+            self._skip_header(f)
+            # Save the rest to a file using columns specified by the columns.keys() with the 
+            # columns values for the column names.
+            self.attitude = pd.read_csv(f, sep=' ', names=[columns[key] for key in columns.keys()], 
+                                        usecols=columns.keys())
+        # Parse the dates by first making YYYY-DOY strings.
+        year_doy = [f'{year}-{doy}' for year, doy in 
+                    self.attitude[['Year', 'Day-of-year']].values]
+        attitude_dates=pd.to_datetime(year_doy, format='%Y-%j')
+        # Now add the seconds of day to complete the date and time.
+        self.attitude.index = attitude_dates + pd.to_timedelta(self.attitude['Sec_of_day'], unit='s')
+        # Optionally remove duplicate columns to conserve memory.
+        if remove_old_time_cols:
+            self.attitude.drop(['Year', 'Day-of-year', 'Sec_of_day'], axis=1, inplace=True)
         return
 
-    def _get_header(self, f):
+    def _skip_header(self, f):
         """ 
         Read in the "f" attitude file stream line by line until the 
-        "BEGIN DATA" line is reached. Returns a list of column
+        "BEGIN DATA" line is reached. Then return Returns a list of column
         names from the parsed header.
         """
         for line in f:
-            if "Column" in line:
-                # Found a line, now get the column name
-                column_name_description = line.split(':')
-                print(column_name_description)
-                column_name = column_name_description[1].split(' - ')
-                print(column_name[0])
-
             if "BEGIN DATA" in line:
-                break 
-
-        return
+                return f 
+        return None
 
 
 if __name__ == '__main__':
