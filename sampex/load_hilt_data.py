@@ -74,7 +74,7 @@ class Load_SAMPEX_HILT:
         Reads in the CSV file given either the filename or the 
         zip file reference
         """
-        print(f'Loading SAMPEX on {self.load_date.date()} from {path.name}')
+        print(f'Loading SAMPEX HILT data from {self.load_date.date()} from {path.name}')
         self.hilt = pd.read_csv(path, sep=' ')
         return
 
@@ -165,6 +165,8 @@ class Load_SAMPEX_Attitude:
         If remove_old_time_cols is True, the year, DOY, and second columns are 
         delited to conserve memory.
         """
+        print(f'Loading SAMPEX attitude data from {self.load_date} from'
+            f' {self.attitude_file.name}')
         # A default set of hard-coded list of columns to load
         if columns=='default':
             columns = {
@@ -213,19 +215,32 @@ class Load_SAMPEX_HILT_ATTITUDE:
         raise NotImplementedError
         return
 
+    def merge_data(self):
+        """ 
+        This method uses pd.merge_asof to merge the SAMPEX attitude data with
+        the HILT data with a maximum threshold of 6 seconds.
+        """ 
+        raise NotImplementedError
+        return
+
 if __name__ == '__main__':
-    # l = Load_SAMPEX_HILT(datetime(2000, 4, 4))
-    # l.resolve_counts_state4()
-    # import matplotlib.pyplot as plt
-    # plt.plot(l.hilt.index, l.hilt.Rate5)
-    # plt.show()
     import time
+    import matplotlib.pyplot as plt
+
     start_time = time.time()
+
     l = Load_SAMPEX_HILT(datetime(2000, 4, 4))
+    l.resolve_counts_state4()
     a = Load_SAMPEX_Attitude(datetime(2000, 4, 4))
+
     print(f'Run time = {time.time()-start_time} s')
 
-    #### Use argparse if running in interactive mode ###
+    plt.plot(l.hilt_resolved.index, l.hilt_resolved.counts)
+    plt.show()
+
+
+    ### Copied AC6 code to make a command-line interface to plot the daily SAMPEX data 
+    ### once Load_SAMPEX_HILT_ATTITUDE is written.
     # parser = argparse.ArgumentParser(description=('This script plots the '
     #     'SAMPEX HILT data.'))
     # parser.add_argument('date', nargs=3, type=int,
