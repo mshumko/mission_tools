@@ -5,8 +5,10 @@ import pathlib
 from datetime import datetime, date
 import zipfile
 import numpy as np
+import re
 
-hilt_dir = '/home/mike/research/sampex/'
+hilt_dir = '/home/mike/research/sampex/data/hilt'
+attitude_dir = '/home/mike/research/sampex/data/attitude'
 
 class Load_SAMPEX_HILT:
     def __init__(self, load_date, zipped=True, extract=False, 
@@ -113,16 +115,83 @@ class Load_SAMPEX_HILT:
 
 
 class Load_SAMPEX_Attitude:
-    def __init__(self, date):
+    def __init__(self, load_date):
+        """ 
+        This class loads the appropriate SAMEX attitude file, 
+        parses the complex header and converts the time 
+        columns into datetime objects
+        """
+        self.load_date = load_date
+
+        # Figure out how to calculate the day of year (DOY)
+        if isinstance(self.load_date, pd.Timestamp):
+            self.doy = int(self.load_date.dayofyear)
+        elif isinstance(self.load_date, (datetime, date) ):
+            self.doy = int(self.load_date.timetuple().tm_yday)
+
+        # Find the appropriate attitude file.
+        self.find_matching_attitude_file()
+
+        # Load the data into a dataframe
+        self.load_attitude()
+        return
+
+    def find_matching_attitude_file(self):
+        """ 
+        Uses pathlib.rglob to find the attitude file that contains 
+        the DOY from self.load_date
+        """
+        attitude_files = list(pathlib.Path(attitude_dir).rglob('PSSet_6sec_*_*.txt'))
+        start_end_dates = [re.findall(r'\d+', str(f))[1:] for f in attitude_files]
+        
+        current_date_int = int(self.load_date.year*1000 + self.doy)
+        self.attitude_file = None
+
+        for f, (start_date, end_date) in zip(attitude_files, start_end_dates):
+            if (int(start_date) <= current_date_int) and (int(end_date) >= current_date_int):
+                self.attitude_file = f
+        if self.attitude_file is None:
+            raise ValueError(f'A matched file not found for year='
+                             f'{self.load_date.year}, doy={self.doy}')
+        return self.attitude_file
+
+    def load_attitude(self):
+        """ 
+        Loads the attitude file and convers the long header into
+        a list of variables.
+        """
+        with open(self.attitude_file) as f:
+            header_vars = self._get_header(f)
+        return
+
+    def _get_header(self, f):
+        """ 
+        Read in the "f" attitude file stream line by line until the 
+        "BEGIN DATA" line is reached. Returns a list of column
+        names from the parsed header.
+        """
+        for line in f:
+            if "Column" in line:
+                # Found a line, now get the column name
+                column_name_description = line.split(':')
+                print(column_name_description)
+                column_name = column_name_description[1].split(' - ')
+                print(column_name[0])
+
+            if "BEGIN DATA" in line:
+                break 
 
         return
 
+
 if __name__ == '__main__':
-    l = Load_SAMPEX_HILT(datetime(2000, 4, 4))
-    l.resolve_counts_state4()
+    # l = Load_SAMPEX_HILT(datetime(2000, 4, 4))
+    # l.resolve_counts_state4()
     # import matplotlib.pyplot as plt
     # plt.plot(l.hilt.index, l.hilt.Rate5)
     # plt.show()
+
+    a = Load_SAMPEX_Attitude(datetime(2000, 4, 4))
 
     #### Use argparse if running in interactive mode ###
     # parser = argparse.ArgumentParser(description=('This script plots the '
