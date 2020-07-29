@@ -1,56 +1,20 @@
-import matplotlib.pyplot as plt
-import numpy as np
 from datetime import datetime
-import time
+import matplotlib.pyplot as plt
+import pathlib
+import inspect
 
 def annotate_plot(func):
     def wrapper_annotate_plot(*args, **kwargs):
         func(*args, **kwargs)
         plot_date_time = datetime.strftime(datetime.now(), "%Y/%m/%d %H:%M:%S")
+
+        # Get the filename assisiated with func.
+        frame_info = inspect.stack()
+        filepath = frame_info[1][1]
+        file_name = pathlib.Path(filepath).name
+
         plt.subplots_adjust(bottom=0.2)
         plt.text(10, 10, 
-                f'Generated at {plot_date_time} by {func.__name__}() in {__file__}', 
+                f'Generated at {plot_date_time} by {func.__name__}() in {file_name}', 
                 transform=None)
     return wrapper_annotate_plot
-
-@annotate_plot
-def plot_sine_plt():
-    x = np.linspace(0, 2*np.pi)
-    y = np.sin(x)
-    plt.plot(x, y)
-    plt.title('The greatest sine curve in the land')
-    plt.xlabel('x')
-    plt.ylabel('y')
-    return
-
-@annotate_plot
-def plot_sine_subplot():
-    x = np.linspace(0, 2*np.pi)
-    y = np.sin(x)
-    fig, ax = plt.subplots()
-    ax.plot(x, y)
-    ax.set_title('The greatest sine curve in the land')
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    return
-
-@annotate_plot
-def plot_sine_subplots():
-    x = np.linspace(0, 2*np.pi)
-    y = np.sin(x)
-    fig, ax = plt.subplots(2, 1)
-    ax[0].plot(x, y)
-    ax[1].plot(x, y)
-    ax[0].set_title('The greatest sine curves in the land')
-    ax[-1].set_xlabel('x')
-    ax[-1].set_ylabel('y')
-    return
-
-
-if __name__ == "__main__":
-    plot_sine_plt()
-    time.sleep(1)
-    plot_sine_subplot()
-    time.sleep(1)
-    plot_sine_subplots()
-    plt.show()
