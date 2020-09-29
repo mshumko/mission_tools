@@ -1,7 +1,11 @@
-Cartopy == 0.17.0
-matplotlib == 2.2.3 # Newer versions break Cartopy
+# Install the cartopy C dependencies with these two commands:
+#sudo apt-get install libgeos++-dev
+#sudo apt-get install libproj-dev
+Cartopy >= 0.17.0
+matplotlib == 3.1.2 # Newer versions break Cartopy
 netCDF4 >= 1.5.3
 numpy >= 1.18.1
 pandas >= 1.0.0
 sgp4 == 1.4
-spacepy == 0.1.6
+spacepy >= 0.1.6
+-e .

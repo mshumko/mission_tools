@@ -4,3 +4,4 @@ directries.py
 .vscode/
 /orbit/data/*
 *.png
+*.egg-info
